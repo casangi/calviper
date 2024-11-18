@@ -1,2 +1,1 @@
-# calviper
-RADPS Calibration
+# RADPS Calibration Prototype
