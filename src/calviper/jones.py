@@ -15,6 +15,8 @@ class GainJones(JonesMatrix):
         self.n_polarizations: Union[int, None] = 2
         self.n_parameters: Union[int, None] = 1
         self.channel_dependent_parameters: bool = False
+        self._parameters = None
+        self._matrix = None
 
         self.name: str = "GainJonesMatrix"
 

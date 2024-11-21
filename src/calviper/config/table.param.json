@@ -1,0 +1,20 @@
+{
+  "GainTable.generate": {
+    "coords": {
+      "nullable": false,
+      "required": true,
+      "type": [
+        "dict"
+      ]
+    }
+  },
+  "CalibrationTable.create_table": {
+    "factory": {
+      "nullable": false,
+      "required": true,
+      "type": [
+        "string"
+      ]
+    }
+  }
+}

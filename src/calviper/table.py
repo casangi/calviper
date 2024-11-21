@@ -2,6 +2,7 @@ import numpy as np
 import xarray as xr
 
 import toolviper.utils.logger as logger
+import toolviper.utils.parameter
 
 from abc import ABC
 from abc import abstractmethod
@@ -20,6 +21,7 @@ class CalibrationFactory(ABC):
     @abstractmethod
     def create_table(self, factory: Union[None, str]):
         pass
+
 
 class GainTable(BaseCalibrationTable):
 
@@ -80,7 +82,6 @@ class GainTable(BaseCalibrationTable):
 
         return xds
 
-
 class CalibrationTable(CalibrationFactory):
 
     def __init__(self):
@@ -88,7 +89,8 @@ class CalibrationTable(CalibrationFactory):
             "gain": GainTable,
         }
 
-    def create_table(self, factory: Union[None, str])->Union[BaseCalibrationTable, None]:
+    @toolviper.utils.parameter.validate()
+    def create_table(self, factory: str)->Union[BaseCalibrationTable, None]:
         try:
             return self.factory_list[factory]()
 
