@@ -9,12 +9,14 @@ class GainJones(JonesMatrix):
     def __init__(self):
         super(GainJones, self).__init__()
 
-        # public parent variable
+        # Public parent variable
         self.type: Union[str, None] = "G"
         self.dtype = np.complex64
         self.n_polarizations: Union[int, None] = 2
         self.n_parameters: Union[int, None] = 1
         self.channel_dependent_parameters: bool = False
+
+        # Private variables
         self._parameters = None
         self._matrix = None
 
