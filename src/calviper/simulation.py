@@ -10,10 +10,10 @@ def generate_gains(n_ant):
     return np.identity(n_ant) * gains
 
 
-def generate_vis(n_ant, gains, samples=100, noise=0.1):
+def generate_visibilities(n_ant, gains, samples=100, noise=0.1):
     noise = np.random.uniform(0, noise, n_ant) + 1j * np.random.uniform(0, noise, n_ant)
 
-    model = np.empty([n_ant, n_ant], dtype=complex)
+    model = np.empty([samples, n_ant, n_ant], dtype=complex)
     model.fill(complex(1, 0))
 
     # linear transformation time!
