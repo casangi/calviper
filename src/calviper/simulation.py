@@ -2,6 +2,7 @@ import numpy as np
 
 
 def generate_gains(n_ant):
+    # This is wrong at the moment
     amplitude = np.random.uniform(0.5, 2.5, n_ant)
     phase = np.random.uniform(0., np.pi, n_ant)
 
@@ -11,6 +12,7 @@ def generate_gains(n_ant):
 
 
 def generate_visibilities(n_ant, gains, samples=100, noise=0.1):
+    # This is wrong at the moment
     noise = np.random.uniform(0, noise, n_ant) + 1j * np.random.uniform(0, noise, n_ant)
 
     model = np.empty([samples, n_ant, n_ant], dtype=complex)
