@@ -43,3 +43,31 @@ def solve(vis, iterations, loss=mse, optimizer=None, alpha=0.1) -> tuple[np.ndar
             _gains[i] = _gains[i] + alpha * _step[i]
 
     return _gains, np.array(_tracker)
+
+
+def fast_solve(vis, iterations, loss=mse, optimizer=None, alpha=0.1):
+    # The visibility matrix should be square so this will work. To
+    # for an initial guess gains vector.
+    # _gains = np.random.uniform(0, 1, vis.shape[1])
+    _gains = 0.1 * np.ones(vis.shape[1], dtype=complex)
+    _step = np.zeros(vis.shape[1], dtype=complex)
+
+    # Generate point source model
+    _model = (1.0 + 1j * 0.0) * np.ones_like(vis, dtype=complex)
+    np.fill_diagonal(_model, complex(0., 0.))
+
+    _loss = 0.0 + 1j * 0.0
+
+    _tracker = []
+
+    for n in range(iterations):
+        _cache = vis * vis.T
+        _numerator = np.matmul(_cache, _gains)
+
+        _denominator = np.matmul(_model * _model.conj(), _gains * _gains.conj())
+
+        _step = (_numerator / _denominator) - _gains
+
+        _gains = _gains + alpha * _step
+
+    return _gains, _tracker
