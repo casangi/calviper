@@ -47,6 +47,7 @@ class LeastSquaresSolver:
 
                 _step[i] = (_numerator / _denominator) - _gains[i]
 
+                print(f"step({i}): {_step[i]}")
                 _gains[i] = _gains[i] + alpha * _step[i]
 
         return _gains
@@ -66,12 +67,16 @@ class LeastSquaresSolver:
         self.losses = []
 
         for n in range(iterations):
+            # Fill this in when I figure out the most optimal way to calculate the error given the
+            # input data structure.
+            #self.losses.append(optimizer.loss(y, y_pred))
+
             gradient_ = optimizer.gradient(
                 target=vis,
                 model=model_,
                 parameter=self.parameter
             )
-
+            #print(f"gradient({n}): {gradient_}")
             self.parameter = optimizer.step(
                 parameter=self.parameter,
                 gradient=gradient_
