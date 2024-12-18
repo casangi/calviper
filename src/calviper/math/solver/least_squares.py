@@ -18,6 +18,7 @@ class LeastSquaresSolver:
         self.model_ = None
 
     def _solve(self, vis, iterations, loss=mse, optimizer=None, alpha=0.1):
+        # **** Deprecated ****
         # The visibility matrix should be square so this will work. To
         # for an initial guess gains vector.
         _gains = 0.1 * np.ones(vis.shape[1], dtype=complex)
