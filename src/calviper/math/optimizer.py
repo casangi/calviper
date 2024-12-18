@@ -8,13 +8,9 @@ class MeanSquaredError:
     @staticmethod
     def gradient(target: np.ndarray, model: np.ndarray, parameter: np.ndarray) -> np.ndarray:
         cache_ = target * model.conj()
-        #print(f"cache:\n{cache_}")
 
         numerator_ = np.matmul(cache_, parameter)
         denominator_ = np.matmul(model * model.conj(), parameter * parameter.conj())
-
-        #print(f"numerator:\n{numerator_}")
-        #print(f"denominator:\n{denominator_}")
 
         gradient_ = (numerator_ / denominator_) - parameter
 
@@ -28,7 +24,7 @@ class MeanSquaredError:
         :param y_pred: Predicted values.
         :return: Mean squared error.
         """
-        return np.mean(np.power(y_pred - y), 2)
+        return np.mean(np.power(np.abs(y_pred.flatten()) - np.abs(y.flatten()), 2))
 
     def step(self, parameter: np.ndarray, gradient: np.ndarray) -> np.ndarray:
         parameter = parameter + self.alpha * gradient
