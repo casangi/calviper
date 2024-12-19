@@ -1,4 +1,5 @@
 import numpy as np
+import xarray as xr
 
 from calviper.base import JonesMatrix
 from typing import TypeVar, Type, Union
@@ -10,6 +11,7 @@ class GainJones(JonesMatrix):
         super(GainJones, self).__init__()
 
         # Public parent variable
+        self.n_times = None
         self.type: Union[str, None] = "G"
         self.dtype = np.complex64
         self.n_polarizations: Union[int, None] = 2
@@ -45,3 +47,23 @@ class GainJones(JonesMatrix):
 
         self.matrix = np.identity(2, dtype=np.complex64)
         self.matrix = np.tile(self.matrix, [self.n_times, self.n_antennas, self.n_channel_matrices, 1, 1])
+
+    @classmethod
+    def from_visibility(cls: Type[T], dataset: xr.Dataset, time_dependence: bool = False) -> T:
+        shape = dataset.VISIBILITY.shape
+
+        # There should be a gain value for each independent antenna. Here we choose antenna_1 names but either
+        # would work fine.
+        n_parameters = np.unique(dataset.baseline_antenna1_name).shape[0]
+
+        identity = np.identity(n_parameters, dtype=np.complex64)
+
+        instance = cls()
+
+        instance.n_times, instance.n_antennas, instance.n_channels, instance.n_polarizations = shape
+
+        instance.n_parameters = n_parameters
+
+        instance.matrix = np.tile(identity, reps=[*shape, 1, 1])
+
+        return instance
