@@ -4,7 +4,7 @@ import numpy as np
 
 from typing import Union, List
 
-def encode(antennas: Union[List[str], np.ndarray]) -> np.ndarray:
+def encode(antennas: Union[List[str], np.ndarray]) -> tuple[np.ndarray, np.ndarray]:
     """
     Encode the antenna names into a list of unique integers identifiers.
     :param antennas: list of antennas to encode
@@ -18,7 +18,7 @@ def encode(antennas: Union[List[str], np.ndarray]) -> np.ndarray:
 
     encoder.fit(names)
 
-    return encoder.transform(antennas)
+    return encoder.transform(antennas), encoder.classes_
 
 
 @numba.njit()

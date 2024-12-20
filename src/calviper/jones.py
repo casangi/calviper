@@ -13,7 +13,8 @@ class GainJones(JonesMatrix):
         # Public parent variable
         self.n_times = None
         self.type: Union[str, None] = "G"
-        self.dtype = np.complex64
+
+        #self.dtype = np.complex64
         self.n_polarizations: Union[int, None] = 2
         self.n_parameters: Union[int, None] = 1
         self.channel_dependent_parameters: bool = False
@@ -21,6 +22,7 @@ class GainJones(JonesMatrix):
         # Private variables
         self._parameters = None
         self._matrix = None
+        self._antenna_map = None
 
         self.name: str = "GainJonesMatrix"
 
@@ -28,7 +30,18 @@ class GainJones(JonesMatrix):
     # but for now just set the values simply as the original code doesn't do anything more complicated for now.
     @property
     def parameters(self) -> np.ndarray:
-        return self._parameters
+        if self._matrix:
+            return self._matrix
+
+        # Assuming we have an N-dimensional tensor of values, calculate the last two axes.
+        n_axes = len(self._matrix)
+
+        # Using diagonal() we get the diagonal values of the last two axes, so we calculate that from
+        # the total number of axes.
+        axis1 = n_axes - 2
+        axis2 = n_axes - 1
+
+        return self._matrix.diagonal(axis1=axis1, axis2=axis2)
 
     @parameters.setter
     def parameters(self, array: np.ndarray) -> None:
@@ -50,7 +63,14 @@ class GainJones(JonesMatrix):
 
     @classmethod
     def from_visibility(cls: Type[T], dataset: xr.Dataset, time_dependence: bool = False) -> T:
+        import calviper.math.tools as tools
+
         shape = dataset.VISIBILITY.shape
+
+        # This will encode the antenna values into an integer list.
+        index, antenna = tools.encode(dataset.baseline_antenna1_name.to_numpy())
+
+        cls._antenna_map = {antenna[i]: index[i] for i in range(len(index))}
 
         # There should be a gain value for each independent antenna. Here we choose antenna_1 names but either
         # would work fine.

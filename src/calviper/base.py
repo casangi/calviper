@@ -21,20 +21,23 @@ class JonesMatrix(ABC):
 
     def __init__(self):
         # private parent variables
-        self._parameters: Union[np.array, None] = None
+        #self._parameters: Union[np.array, None] = None
         self._matrix: Union[np.array, None] = None
 
         # public parent variable
         self.type: Union[str, None] = None
-        self.dtype: Union[type, None] = None
+
+        #self.dtype: Union[type, None] = None
         self.n_times: Union[int, None] = None
         self.n_antennas: Union[int, None] = None
         self.n_channels: Union[int, None] = None
         self.n_polarizations: Union[int, None] = None
-        self.n_channel_matrices: Union[int, None] = None
+
+        #self.n_channel_matrices: Union[int, None] = None
         self.n_parameters: Union[int, None] = None
         self.caltable_name: Union[str, None] = None
-        self.channel_dependent_parameters: bool = False
+
+        #self.channel_dependent_parameters: bool = False
 
         self.polarization_basis: PolarizationBasis = PolarizationBasis()
         self.name: str = "BaseJonesMatrix"
@@ -42,21 +45,16 @@ class JonesMatrix(ABC):
     # Inherited member properties
     @property
     def shape(self) -> tuple:
-        return self.n_times, self.n_antennas, self.n_channels, self.n_polarizations, self.n_parameters
+        raise NotImplementedError
 
     @shape.setter
     def shape(self, shape: tuple):
-        # Unpack shape values
-        self.n_times, self.n_antennas, self.n_channels, self.n_polarizations, self.n_parameters = shape
-
-        # Reset parameters and matrices
-        self._parameters = np.empty(shape, dtype=self.dtype)
-        self._matrix = np.empty((self.n_times, self.n_antennas, self.n_channels), dtype=complex)
+        return NotImplementedError
 
     @property
     @abstractmethod
     def parameters(self) -> np.ndarray:
-        return self._parameters
+        raise NotImplementedError
 
     @parameters.setter
     @abstractmethod
@@ -112,6 +110,10 @@ class JonesMatrix(ABC):
     def from_visibility(cls: Type[T], data: xr.Dataset, time_dependence: bool = False) -> T:
         return cls
 
+    # Commenting all these out for the moment. They were written in line with George's original code
+    # but that was based on a different workflow than I am foreseeing at the moment. These will be
+    # added back, if needed, as work progresses.
+    '''
     def initialize_parameters(self, dtype: np.dtype, shape: tuple = None):
         # Set data type
         self.type = dtype
@@ -153,3 +155,4 @@ class JonesMatrix(ABC):
     def apply_right(self):
         # Need to inspect use case
         pass
+'''
