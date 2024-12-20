@@ -34,7 +34,7 @@ def build_visibility_matrix(array: np.ndarray, index_a: np.ndarray, index_b: np.
     size = index_a.shape[0]
 
     # Calculate the N X N matrix size needed
-    dimension = np.unique(index_a).shape[0] + 1
+    dimension = np.unique(index_a).shape[0]
 
     # Build matrix
     matrix_ = np.zeros((dimension, dimension), dtype=np.complex64)

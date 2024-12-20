@@ -63,27 +63,40 @@ class GainJones(JonesMatrix):
 
     @classmethod
     def from_visibility(cls: Type[T], dataset: xr.Dataset, time_dependence: bool = False) -> T:
+        """
+        Build Jones matrix from visibility data.
+        :param dataset:
+        :param time_dependence:
+        :return:
+        """
+
+        # For the prototype we will pretend there is no polarization and one channel.
         import calviper.math.tools as tools
 
         shape = dataset.VISIBILITY.shape
 
         # This will encode the antenna values into an integer list.
-        index, antenna = tools.encode(dataset.baseline_antenna1_name.to_numpy())
-
-        cls._antenna_map = {antenna[i]: index[i] for i in range(len(index))}
-
-        # There should be a gain value for each independent antenna. Here we choose antenna_1 names but either
-        # would work fine.
-        n_parameters = np.unique(dataset.baseline_antenna1_name).shape[0]
-
-        identity = np.identity(n_parameters, dtype=np.complex64)
+        index, antennas = tools.encode(dataset.baseline_antenna1_name.to_numpy())
 
         instance = cls()
 
-        instance.n_times, instance.n_antennas, instance.n_channels, instance.n_polarizations = shape
+        # There should be a gain value for each independent antenna. Here we choose antenna_1 names but either
+        # would work fine.
+        instance.n_antennas = np.unique(dataset.baseline_antenna1_name).shape[0]
 
-        instance.n_parameters = n_parameters
 
-        instance.matrix = np.tile(identity, reps=[*shape, 1, 1])
+        # With no polarization and one channel, n_parameters = n_antennas
+        # instance.n_parameters = n_parameters
+        instance.n_parameters = instance.n_antennas
+
+        identity = np.identity(instance.n_parameters, dtype=np.complex64)
+
+        instance._antenna_map = {i: str(antenna) for i, antenna in enumerate(antennas)}
+
+        instance.n_times, instance.n_baselines, instance.n_channels, instance.n_polarizations = shape
+
+        # Build on the above idea ... wrong as they may be. Simplicity first.
+        # instance.matrix = np.tile(identity, reps=[*shape, 1, 1])
+        instance.matrix = np.tile(identity, reps=[instance.n_times, 1, 1])
 
         return instance
