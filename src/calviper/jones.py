@@ -1,6 +1,9 @@
 import numpy as np
 import xarray as xr
 
+import calviper.math.tools as tools
+import toolviper.utils.logger as logger
+
 from calviper.base import JonesMatrix
 from typing import TypeVar, Type, Union
 
@@ -15,8 +18,10 @@ class GainJones(JonesMatrix):
         self.type: Union[str, None] = "G"
 
         #self.dtype = np.complex64
-        self.n_polarizations: Union[int, None] = 2
-        self.n_parameters: Union[int, None] = 1
+        self.n_polarizations: Union[int, None] = 4
+        self.n_parameters: Union[int, None] = None
+        self.n_baselines: Union[int, None] = None
+        self.n_channels: Union[int, None] = None
         self.channel_dependent_parameters: bool = False
 
         # Private variables
@@ -30,18 +35,7 @@ class GainJones(JonesMatrix):
     # but for now just set the values simply as the original code doesn't do anything more complicated for now.
     @property
     def parameters(self) -> np.ndarray:
-        if self._matrix:
-            return self._matrix
-
-        # Assuming we have an N-dimensional tensor of values, calculate the last two axes.
-        n_axes = len(self._matrix)
-
-        # Using diagonal() we get the diagonal values of the last two axes, so we calculate that from
-        # the total number of axes.
-        axis1 = n_axes - 2
-        axis2 = n_axes - 1
-
-        return self._matrix.diagonal(axis1=axis1, axis2=axis2)
+        return self._parameters
 
     @parameters.setter
     def parameters(self, array: np.ndarray) -> None:
@@ -53,10 +47,13 @@ class GainJones(JonesMatrix):
 
     @matrix.setter
     def matrix(self, array: np.ndarray) -> None:
+        #(self.n_times, self.n_baselines, self.n_channels, _, _) = array.shape
+
+        # This is a unraveled view of the input matrix containing the polarization correlation parameter matrix
         self._matrix = array
 
     def calculate(self) -> None:
-        self.initialize_jones()
+        #self.initialize_jones()
 
         self.matrix = np.identity(2, dtype=np.complex64)
         self.matrix = np.tile(self.matrix, [self.n_times, self.n_antennas, self.n_channel_matrices, 1, 1])
@@ -69,9 +66,6 @@ class GainJones(JonesMatrix):
         :param time_dependence:
         :return:
         """
-
-        # For the prototype we will pretend there is no polarization and one channel.
-        import calviper.math.tools as tools
 
         shape = dataset.VISIBILITY.shape
 
@@ -87,16 +81,21 @@ class GainJones(JonesMatrix):
 
         # With no polarization and one channel, n_parameters = n_antennas
         # instance.n_parameters = n_parameters
-        instance.n_parameters = instance.n_antennas
+        instance.n_parameters = instance.n_antennas*instance.n_polarizations
 
-        identity = np.identity(instance.n_parameters, dtype=np.complex64)
+        polarization_axis_ = int(instance.n_polarizations // 2)
+
+        identity = np.identity(polarization_axis_, dtype=np.complex64)
 
         instance._antenna_map = {i: str(antenna) for i, antenna in enumerate(antennas)}
 
         instance.n_times, instance.n_baselines, instance.n_channels, instance.n_polarizations = shape
 
+        # Initialize default parameters
+        instance.parameters = np.empty((instance.n_times, instance.n_channels, instance.n_parameters), dtype=np.complex64)
+
         # Build on the above idea ... wrong as they may be. Simplicity first.
         # instance.matrix = np.tile(identity, reps=[*shape, 1, 1])
-        instance.matrix = np.tile(identity, reps=[instance.n_times, 1, 1])
+        instance.matrix = np.tile(identity, reps=[instance.n_times, instance.n_baselines, instance.n_channels, 1, 1])
 
         return instance

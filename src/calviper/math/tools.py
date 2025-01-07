@@ -2,7 +2,43 @@ import numba
 
 import numpy as np
 
+import toolviper.utils.logger as logger
+
 from typing import Union, List
+
+def ravel(array: np.ndarray):
+    """
+    Convert parameter array to array of polarization correlation matrices.
+    :param array: parameter array
+    :return: np.ndarray of polarization correlation matrices
+    """
+
+    # Array should be something like (n_times, ..., XX, XY, YX, YY)
+    if array.ndim < 2:
+        logger.error("Unravel failed because array has too few dimensions.")
+        return None
+
+    shape_ = (*array.shape[:-1], 2, 2)
+
+    return array.reshape(shape_)
+
+def unravel(array: np.ndarray)-> Union[np.ndarray, None]:
+    """
+        Convert array of polarization correlation matrices to parameter array.
+        :param array of polarization correlation matrices
+        :return: parameter array
+        """
+
+    # Array should be something like (n_times, ..., [ [XX, XY],
+    #                                                 [YX, YY] ])
+    if array.ndim < 3:
+        logger.error("Unravel failed because array has too few dimensions.")
+        return None
+
+    shape_ = (*array.shape[:-2], 4)
+
+    return array.reshape(shape_)
+
 
 def encode(antennas: Union[List[str], np.ndarray]) -> tuple[np.ndarray, np.ndarray]:
     """
