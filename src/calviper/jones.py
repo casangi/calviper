@@ -49,7 +49,8 @@ class GainJones(JonesMatrix):
     def matrix(self, array: np.ndarray) -> None:
         #(self.n_times, self.n_baselines, self.n_channels, _, _) = array.shape
 
-        # This is a unraveled view of the input matrix containing the polarization correlation parameter matrix
+        # There should be a check on the shape here. I don't think we want to allow, for instance,
+        # an axis to be averaged while also having the dimensions stored in the object not change.
         self._matrix = array
 
     def calculate(self) -> None:
