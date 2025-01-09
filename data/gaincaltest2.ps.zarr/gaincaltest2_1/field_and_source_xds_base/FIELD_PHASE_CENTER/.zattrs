@@ -1,0 +1,12 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "sky_dir_label"
+    ],
+    "coordinates": "field_name source_name",
+    "frame": "icrs",
+    "type": "sky_coord",
+    "units": [
+        "rad",
+        "rad"
+    ]
+}

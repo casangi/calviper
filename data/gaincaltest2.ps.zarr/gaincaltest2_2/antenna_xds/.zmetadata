@@ -1,0 +1,292 @@
+{
+    "metadata": {
+        ".zattrs": {
+            "overall_telescope_name": "ALMA",
+            "relocatable_antennas": true,
+            "type": "antenna"
+        },
+        ".zgroup": {
+            "zarr_format": 2
+        },
+        "ANTENNA_DISH_DIAMETER/.zarray": {
+            "chunks": [
+                10
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                10
+            ],
+            "zarr_format": 2
+        },
+        "ANTENNA_DISH_DIAMETER/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "antenna_name"
+            ],
+            "coordinates": "mount station telescope_name",
+            "type": "quantity",
+            "units": [
+                "m"
+            ]
+        },
+        "ANTENNA_POSITION/.zarray": {
+            "chunks": [
+                10,
+                3
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                10,
+                3
+            ],
+            "zarr_format": 2
+        },
+        "ANTENNA_POSITION/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "antenna_name",
+                "cartesian_pos_label"
+            ],
+            "coordinate_system": "geocentric",
+            "coordinates": "mount station telescope_name",
+            "frame": "GRS80",
+            "origin_object_name": "earth",
+            "type": "location",
+            "units": [
+                "m",
+                "m",
+                "m"
+            ]
+        },
+        "ANTENNA_RECEPTOR_ANGLE/.zarray": {
+            "chunks": [
+                10,
+                2
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                10,
+                2
+            ],
+            "zarr_format": 2
+        },
+        "ANTENNA_RECEPTOR_ANGLE/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "antenna_name",
+                "receptor_label"
+            ],
+            "coordinates": "mount polarization_type station telescope_name",
+            "type": "quantity",
+            "units": [
+                "rad"
+            ]
+        },
+        "antenna_name/.zarray": {
+            "chunks": [
+                10
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<U9",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                10
+            ],
+            "zarr_format": 2
+        },
+        "antenna_name/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "antenna_name"
+            ]
+        },
+        "cartesian_pos_label/.zarray": {
+            "chunks": [
+                3
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<U1",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                3
+            ],
+            "zarr_format": 2
+        },
+        "cartesian_pos_label/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "cartesian_pos_label"
+            ]
+        },
+        "mount/.zarray": {
+            "chunks": [
+                10
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<U6",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                10
+            ],
+            "zarr_format": 2
+        },
+        "mount/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "antenna_name"
+            ]
+        },
+        "polarization_type/.zarray": {
+            "chunks": [
+                10,
+                2
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<U1",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                10,
+                2
+            ],
+            "zarr_format": 2
+        },
+        "polarization_type/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "antenna_name",
+                "receptor_label"
+            ]
+        },
+        "receptor_label/.zarray": {
+            "chunks": [
+                2
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<U5",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                2
+            ],
+            "zarr_format": 2
+        },
+        "receptor_label/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "receptor_label"
+            ]
+        },
+        "station/.zarray": {
+            "chunks": [
+                10
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<U4",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                10
+            ],
+            "zarr_format": 2
+        },
+        "station/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "antenna_name"
+            ]
+        },
+        "telescope_name/.zarray": {
+            "chunks": [
+                10
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<U4",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                10
+            ],
+            "zarr_format": 2
+        },
+        "telescope_name/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "antenna_name"
+            ]
+        }
+    },
+    "zarr_consolidated_format": 1
+}

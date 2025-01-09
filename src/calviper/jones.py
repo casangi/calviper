@@ -7,10 +7,10 @@ T = TypeVar('T', bound='Parent')
 
 class GainJones(JonesMatrix):
     def __init__(self):
-        super(GainJones, self).__init__()
+        super(GainJones).__init__()
 
         # public parent variable
-        self.type: Union[str, None] = "G"
+        self.type: Union[dict, None] = {"name":"G", "value":30} # ?Setting to dict for now to avoid using the standardVETypeEnum class?
         self.dtype = np.complex64
         self.n_polarizations: Union[int, None] = 2
         self.n_parameters: Union[int, None] = 1
@@ -30,6 +30,14 @@ class GainJones(JonesMatrix):
     def parameters(self, array: np.ndarray) -> None:
         self._parameters = array
 
+    #@property
+    def get_type(self) -> dict:
+        return self.type
+
+    #@type.setter
+    #def type(self, type: dict) -> None:
+    #    self.type = type
+
     @property
     def matrix(self) -> np.ndarray:
         return self._matrix
@@ -43,3 +51,6 @@ class GainJones(JonesMatrix):
 
         self.matrix = np.identity(2, dtype=np.complex64)
         self.matrix = np.tile(self.matrix, [self.n_times, self.n_antennas, self.n_channel_matrices, 1, 1])
+
+
+        

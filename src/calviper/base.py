@@ -25,7 +25,7 @@ class JonesMatrix(ABC):
         self._matrix: Union[np.array, None] = None
 
         # public parent variable
-        self.type: Union[str, None] = None
+        self.type: Union[dict, None] = {"name":None, "value":None}
         self.dtype: Union[type, None] = None
         self.n_times: Union[int, None] = None
         self.n_antennas: Union[int, None] = None
@@ -110,7 +110,38 @@ class JonesMatrix(ABC):
 
     @classmethod
     def from_visibility(cls: Type[T], data: xr.Dataset, time_dependence: bool = False) -> T:
-        return cls
+        # from the xarray set the n_times n_anttenas and n_channels properties
+        # shape is (time, baseline_id, channel, polarization)
+        # in this case expecting the data.VISIBILITY (?)
+        # if a property has no shape then it is just 1 i.e. 1 time, polarization, or channel (can I even assert this universally?)
+        obj = cls()
+
+        if data['time'].shape:
+            obj.n_times = len(data['time'])
+        else:
+            obj.n_times = 1
+
+        if data['frequency'].shape:
+            obj.n_channels = len(data['frequency'])
+        else:
+            obj.n_channels = 1
+
+        if data['polarization'].shape:
+            obj.n_polarizations = len(data['polarization'])
+        else:
+            obj.n_polarizations = 1
+        # calculate n_antennas from baselines
+        if data['baseline_id'].shape:
+            n_baselines = len(data['baseline_id'])
+        else:
+            n_baselines = 1
+
+        obj.n_antennas = int(0.5 * (np.sqrt(8 * n_baselines + 1) + 1))
+
+        # matrix is computed VISIBILITES?
+        obj.matrix = data.compute()
+        
+        return obj
 
     def initialize_parameters(self, dtype: np.dtype, shape: tuple = None):
         # Set data type
