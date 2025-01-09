@@ -9,12 +9,14 @@ from abc import abstractmethod
 
 from typing import Union
 
+
 class BaseCalibrationTable(ABC):
 
     # Base calibration table abstract class
     @abstractmethod
-    def generate(self, coords: dict)->Union[xr.Dataset, None]:
+    def generate(self, coords: dict) -> Union[xr.Dataset, None]:
         pass
+
 
 class CalibrationFactory(ABC):
     # Base factory class for table factory
@@ -28,7 +30,7 @@ class GainTable(BaseCalibrationTable):
     # This is intended to be an implementation of a gain table simulator. It is
     # currently very rough and filled with random numbers. Generally based on the
     # original cal.py
-    def generate(self, coords: dict)-> xr.Dataset:
+    def generate(self, coords: dict) -> xr.Dataset:
         shape = tuple(value.shape[0] for value in coords.values())
 
         dims = {}
@@ -49,9 +51,8 @@ class GainTable(BaseCalibrationTable):
 
         return xds
 
-
     @staticmethod
-    def empty_like(dataset: xr.Dataset)->xr.Dataset:
+    def empty_like(dataset: xr.Dataset) -> xr.Dataset:
         antenna = dataset.antenna_xds.antenna_name.values
         polarizations = np.unique([p for value in dataset.polarization.values for p in list(value)])
 
@@ -82,6 +83,7 @@ class GainTable(BaseCalibrationTable):
 
         return xds
 
+
 class CalibrationTable(CalibrationFactory):
 
     def __init__(self):
@@ -90,7 +92,7 @@ class CalibrationTable(CalibrationFactory):
         }
 
     @toolviper.utils.parameter.validate()
-    def create_table(self, factory: str)->Union[BaseCalibrationTable, None]:
+    def create_table(self, factory: str) -> Union[BaseCalibrationTable, None]:
         try:
             return self.factory_list[factory]()
 

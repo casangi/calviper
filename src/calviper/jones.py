@@ -9,6 +9,7 @@ from typing import TypeVar, Type, Union
 
 T = TypeVar('T', bound='Parent')
 
+
 class GainJones(JonesMatrix):
     def __init__(self):
         super(GainJones, self).__init__()
@@ -79,10 +80,9 @@ class GainJones(JonesMatrix):
         # would work fine.
         instance.n_antennas = np.unique(dataset.baseline_antenna1_name).shape[0]
 
-
         # With no polarization and one channel, n_parameters = n_antennas
         # instance.n_parameters = n_parameters
-        instance.n_parameters = instance.n_antennas*instance.n_polarizations
+        instance.n_parameters = instance.n_antennas * instance.n_polarizations
 
         polarization_axis_ = int(instance.n_polarizations // 2)
 
@@ -93,7 +93,8 @@ class GainJones(JonesMatrix):
         instance.n_times, instance.n_baselines, instance.n_channels, instance.n_polarizations = shape
 
         # Initialize default parameters
-        instance.parameters = np.empty((instance.n_times, instance.n_channels, instance.n_parameters), dtype=np.complex64)
+        instance.parameters = np.empty((instance.n_times, instance.n_channels, instance.n_parameters),
+                                       dtype=np.complex64)
 
         # Build on the above idea ... wrong as they may be. Simplicity first.
         # instance.matrix = np.tile(identity, reps=[*shape, 1, 1])

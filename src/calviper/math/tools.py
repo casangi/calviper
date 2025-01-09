@@ -1,11 +1,11 @@
 import numba
-import math
 
 import numpy as np
 
 import toolviper.utils.logger as logger
 
 from typing import Union, List
+
 
 def ravel(array: np.ndarray):
     """
@@ -23,7 +23,8 @@ def ravel(array: np.ndarray):
 
     return array.reshape(shape_)
 
-def unravel(array: np.ndarray)-> Union[np.ndarray, None]:
+
+def unravel(array: np.ndarray) -> Union[np.ndarray, None]:
     """
         Convert array of polarization correlation matrices to parameter array.
         :param array of polarization correlation matrices
@@ -77,7 +78,7 @@ def build_visibility_matrix(array: np.ndarray, index_a: np.ndarray, index_b: np.
     # is the remaining axes. This means the N_g=5 parameters (antennas gains) with N_p = 4 polarizations
     # would give a parameter matrix of 20 X 20.
     array_dim_ = int(np.array(array.shape[1:]).prod())
-    dimension = np.unique(index_a).shape[0]*array_dim_
+    dimension = np.unique(index_a).shape[0] * array_dim_
 
     # Build matrix
     matrix_ = np.zeros((dimension, dimension), dtype=np.complex64)
