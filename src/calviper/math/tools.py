@@ -74,11 +74,9 @@ def build_visibility_matrix(array: np.ndarray, index_a: np.ndarray, index_b: np.
 
     # Calculate the N X N matrix size needed
     #
-    # The product part ignores the time axis since it will be used in regression, what is included
-    # is the remaining axes. This means the N_g=5 parameters (antennas gains) with N_p = 4 polarizations
-    # would give a parameter matrix of 20 X 20.
-    array_dim_ = int(np.array(array.shape[1:]).prod())
-    dimension = np.unique(index_a).shape[0] * array_dim_
+    # For the moment this will only work for the simplest case, n_chan=1, n_pol=1
+
+    dimension = np.unique(index_a).shape[0]
 
     # Build matrix
     matrix_ = np.zeros((dimension, dimension), dtype=np.complex64)
