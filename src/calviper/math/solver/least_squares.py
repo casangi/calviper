@@ -2,7 +2,7 @@ import numpy as np
 import toolviper.utils.logger as logger
 
 from calviper.math.optimizer import MeanSquaredError
-from calviper.math.loss import mean_squared_error as mse
+# from calviper.math.loss import mean_squared_error as mse
 
 
 class LeastSquaresSolver:
@@ -17,6 +17,7 @@ class LeastSquaresSolver:
         # Private variables
         self.model_ = None
 
+    '''
     def _solve(self, vis, iterations, loss=mse, optimizer=None, alpha=0.1):
         # **** Deprecated ****
         # The visibility matrix should be square so this will work. To
@@ -56,9 +57,12 @@ class LeastSquaresSolver:
                 _gains[i] = _gains[i] + alpha * _step[i]
 
         return _gains
+    '''
 
     def predict(self):
-        parameter_matrix_ = np.identity(self.parameter.shape[0]) * self.parameter
+
+        n_channel, n_polarizations, n_antennas = self.parameter.shape
+        parameter_matrix_ = np.identity(n_antennas) * self.parameter
         cache_ = np.dot(self.model_, parameter_matrix_)
 
         return np.dot(parameter_matrix_.conj(), cache_)
@@ -66,19 +70,31 @@ class LeastSquaresSolver:
     def solve(self, vis, iterations, optimizer=MeanSquaredError(), stopping=1e-3):
         # This is an attempt to do the solving in a vectorized way
 
-        self.parameter = 0.1 * np.ones(vis.shape[1], dtype=complex)
+        # Unpack the shape
+        n_channel, n_polarization, n_antenna1, n_antenna2 = vis.shape
+
+        assert n_antenna1 == n_antenna2, logger.error("Antenna indices don't match")
+
+        self.parameter = np.tile(0.1 * np.ones(n_antenna1, dtype=np.complex64), reps=[n_channel, n_polarization, 1])
 
         # Generate point source model
         if self.model_ is None:
-            self.model_ = (1.0 + 1j * 0.0) * np.ones_like(vis, dtype=complex)
-            np.fill_diagonal(self.model_, complex(0., 0.))
+            self.model_ = (1.0 + 1j * 0.0) * np.ones_like(vis, dtype=np.complex64)
+
+            # numpy.fill_diagonal doesn't fill tensors in the way I had hoped, ie. for shape = (m, n, i, j)
+            # the fill is done for m == n == i == j, which is not what we want. Instead, we want
+            # i == j for each (m. n). The following is my attempt to fix this.
+            anti_eye = np.ones((n_antenna1, n_antenna2), dtype=np.complex64)
+            np.fill_diagonal(anti_eye, np.complex64(0., 0.))
+
+            self.model_ = self.model_ * anti_eye
 
         self.losses = []
 
         for n in range(iterations):
             # Fill this in when I figure out the most optimal way to calculate the error given the
             # input data structure.
-            #self.losses.append(optimizer.loss(y, y_pred))
+            # self.losses.append(optimizer.loss(y, y_pred))
 
             gradient_ = optimizer.gradient(
                 target=vis,
@@ -91,12 +107,15 @@ class LeastSquaresSolver:
                 gradient=gradient_
             )
 
-            y_pred = self.predict()
+            #y_pred = self.predict()
 
-            self.losses.append(optimizer.loss(y_pred, vis))
+            #self.losses.append(optimizer.loss(y_pred, vis))
 
-            if self.losses[-1] < stopping:
-                logger.info(f"Iteration: ({n})\tStopping criterion reached: {self.losses[-1]}")
-                break
+            #if n % (iterations // 10) == 0:
+            #    logger.info(f"iteration: {n}\tloss: {np.abs(self.losses[-1])}")
+
+            #if self.losses[-1] < stopping:
+            #    logger.info(f"Iteration: ({n})\tStopping criterion reached: {self.losses[-1]}")
+            #    break
 
         return self.parameter

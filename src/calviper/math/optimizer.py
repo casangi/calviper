@@ -8,11 +8,13 @@ class MeanSquaredError:
 
     @staticmethod
     def gradient(target: np.ndarray, model: np.ndarray, parameter: np.ndarray) -> np.ndarray:
-        cache_ = target * model.conj()
+        # cache_ = target, model.conj()
+        # numerator_ = np.matmul(cache_, parameter)
+        # denominator_ = np.matmul(model * model.conj(), parameter * parameter.conj())
 
-        numerator_ = np.matmul(cache_, parameter)
-        denominator_ = np.matmul(model * model.conj(), parameter * parameter.conj())
-
+        # einsum should work here *only* because we made the  diagonal of the model zeros
+        numerator_ = np.einsum('cpij,cpj,cpij->cpi', target, parameter, model.conj())
+        denominator_ = np.einsum('cpj,cpj,cpij,cpij->cpi', parameter, parameter.conj(), model, model.conj())
         gradient_ = (numerator_ / denominator_) - parameter
 
         return gradient_
