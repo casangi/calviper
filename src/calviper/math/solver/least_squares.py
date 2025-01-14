@@ -1,3 +1,5 @@
+import numba
+
 import numpy as np
 import toolviper.utils.logger as logger
 
@@ -59,13 +61,31 @@ class LeastSquaresSolver:
         return _gains
     '''
 
-    def predict(self):
+    def predict_(self):
 
         n_channel, n_polarizations, n_antennas = self.parameter.shape
         parameter_matrix_ = np.identity(n_antennas) * self.parameter
         cache_ = np.dot(self.model_, parameter_matrix_)
 
         return np.dot(parameter_matrix_.conj(), cache_)
+
+    @staticmethod
+    @numba.njit()
+    def predict(model_, parameter)->np.ndarray:
+        n_channel, n_polarizations, n_antennas = parameter.shape
+        prediction = np.zeros_like(model_)
+
+        # This can definitely be optimized, but I just want to test for now.
+        for channel in range(n_channel):
+            for polarization in range(n_polarizations):
+                for i in range(n_antennas):
+                    for j in range(n_antennas):
+                        if i == j:
+                            continue
+
+                        prediction[channel, polarization, i, j] = parameter[channel, polarization, i] * model_[channel, polarization, i, j] * np.conj(parameter[channel, polarization, j])
+
+        return prediction
 
     def solve(self, vis, iterations, optimizer=MeanSquaredError(), stopping=1e-3):
         # This is an attempt to do the solving in a vectorized way
@@ -107,15 +127,15 @@ class LeastSquaresSolver:
                 gradient=gradient_
             )
 
-            #y_pred = self.predict()
+            y_pred = self.predict(self.model_, self.parameter)
 
-            #self.losses.append(optimizer.loss(y_pred, vis))
+            self.losses.append(optimizer.loss(y_pred, vis))
 
-            #if n % (iterations // 10) == 0:
-            #    logger.info(f"iteration: {n}\tloss: {np.abs(self.losses[-1])}")
+            if n % (iterations // 10) == 0:
+                logger.info(f"iteration: {n}\tloss: {np.abs(self.losses[-1])}")
 
-            #if self.losses[-1] < stopping:
-            #    logger.info(f"Iteration: ({n})\tStopping criterion reached: {self.losses[-1]}")
-            #    break
+            if self.losses[-1] < stopping:
+                logger.info(f"Iteration: ({n})\tStopping criterion reached: {self.losses[-1]}")
+                break
 
         return self.parameter
