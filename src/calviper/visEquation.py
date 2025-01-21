@@ -5,6 +5,7 @@ import bisect
 from enum import Enum, IntEnum
 
 from toolviper.utils import logger
+from calviper.solver import ScipySolverLeastSquares
 from abc import ABC, abstractmethod
 from typing import TypeVar, Type, Union
 
@@ -91,9 +92,27 @@ class VisEquation(ABC):
             self.solve_pivot = -1
 
         print("Arranging VisEquation to solve for " +
-              self.solve_vis_jones.type["name"] + 
+              self.solve_vis_jones.type["name"] + " " + 
               self.solve_vis_jones.name)
 
 
+    # solve (currently using my probably slow scipy.optimize edition)
+    def solve(self, plot):
+        """
+        Passes the solve_vis_jones to the solver
+        NOTE: Currently using scipy on this branch. Will test with Josh's implimentation
 
-    # solve (use Josh's once merged)
+        Returns: An xarray caltable
+        """
+        # do solve (currently assuming a dict on return for gains but probably an ndarray)
+        solver = ScipySolverLeastSquares(self.solve_vis_jones)
+        solution_dict = solver.solve(tracking=plot)
+        # just test plot
+        if plot:
+            solver.plot_solution()
+
+        # build table (type specific? ant x ant) with 4 pols for each ant soln
+        xarr_out = solver.generate_cal_table(solution_dict)
+
+        # return table
+        return xarr_out
