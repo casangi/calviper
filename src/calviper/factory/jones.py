@@ -1,103 +1,120 @@
 import numpy as np
 import xarray as xr
 
-import calviper.math.tools as tools
 import toolviper.utils.logger as logger
+import toolviper.utils.parameter
 
-from calviper.base import JonesMatrix
-from typing import TypeVar, Type, Union
+from abc import ABC
+from abc import abstractmethod
 
-T = TypeVar('T', bound='Parent')
+from calviper.factory import accessor
+
+from typing import Union
+
+from xarray import Dataset
 
 
-class GainJones(JonesMatrix):
+class BaseJonesMatrix(ABC):
+
+    # Base calibration table abstract class
+    @abstractmethod
+    def generate(self, coords: dict) -> Union[xr.Dataset, None]:
+        pass
+
+
+class JonesFactory(ABC):
+    # Base factory class for table factory
+    @abstractmethod
+    def create_jones(self, factory: Union[None, str]):
+        pass
+
+@accessor.register_subclass
+class GainMatrixDataSet(BaseJonesMatrix):
+
+    # This is intended to be an implementation of a gain table simulator. It is
+    # currently very rough and filled with random numbers. Generally based on the
+    # original cal.py
+    def generate(self, coords: dict) -> None:
+        '''
+        shape = tuple(value.shape[0] for value in coords.values())
+
+        dims = {}
+        for key, value in coords.items():
+            dims[key] = value.shape[0]
+
+        parameter = np.random.uniform(-np.pi, np.pi, shape)
+        amplitude = np.random.normal(1.0, 0.1, shape)
+        parameter = np.vectorize(complex)(
+            np.cos(parameter),
+            np.sin(parameter)
+        )
+
+        xds = xr.Dataset()
+
+        xds["PARAMETER"] = xr.DataArray(amplitude * parameter, dims=dims)
+        xds = xds.assign_coords(coords)
+
+        return GainMatrix(xds)
+        '''
+        logger.info("This function is not implemented yet. Look forward to it in the future.")
+
+    @staticmethod
+    def empty_like(dataset: xr.Dataset) -> Dataset:
+        antenna = dataset.antenna_xds.antenna_name.values
+        polarizations = np.unique([p for value in dataset.polarization.values for p in list(value)])
+
+        dims = dict(
+            time=dataset.sizes["time"],
+            antenna=antenna.shape[0],
+            frequency=dataset.sizes["frequency"],
+            polarization=polarizations.shape[0],
+        )
+
+        coords = dict(
+            time=(["time"], dataset.time.values),
+            antenna=(["antenna"], antenna),
+            frequency=(["frequency"], dataset.frequency.values),
+            polarization=(["polarization"], polarizations),
+            scan_id=(["scan_id"], dataset.scan_number.values),
+        )
+
+        xds = xr.Dataset()
+
+        xds["PARAMETER"] = xr.DataArray(
+            np.empty(list(dims.values())),
+            dims=dims
+        )
+
+        xds["WEIGHT"] = xr.DataArray(
+            np.empty(list(dims.values())),
+            dims=dims
+        )
+
+        xds["FLAG"] = xr.DataArray(
+            np.empty(list(dims.values())),
+            dims=dims
+        )
+
+        xds.attrs["calibration_type"] = "gain"
+        xds.attrs["observation_info"] = dataset.attrs["observation_info"]
+
+        xds = xds.assign_coords(coords)
+
+        return xds
+
+
+class CalibrationMatrix(JonesFactory, ABC):
+
     def __init__(self):
-        super(GainJones, self).__init__()
+        self.factory_list = {
+            "gain": GainMatrixDataSet,
+        }
 
-        # Public parent variable
-        self.n_times = None
-        self.type: Union[str, None] = "G"
+    #@toolviper.utils.parameter.validate()
+    def create_jones(self, factory: str) -> Union[BaseJonesMatrix, None]:
+        try:
+            return self.factory_list[factory]()
 
-        #self.dtype = np.complex64
-        self.n_polarizations: Union[int, None] = 4
-        self.n_parameters: Union[int, None] = None
-        self.n_baselines: Union[int, None] = None
-        self.n_channels: Union[int, None] = None
-        self.channel_dependent_parameters: bool = False
-
-        # Private variables
-        self._parameters = None
-        self._matrix = None
-        self._antenna_map = None
-
-        self.name: str = "GainJonesMatrix"
-
-    # This is just an example of how this would be done. There should certainly be checks and customization
-    # but for now just set the values simply as the original code doesn't do anything more complicated for now.
-    @property
-    def parameters(self) -> np.ndarray:
-        return self._parameters
-
-    @parameters.setter
-    def parameters(self, array: np.ndarray) -> None:
-        self._parameters = array
-
-    @property
-    def matrix(self) -> np.ndarray:
-        return self._matrix
-
-    @matrix.setter
-    def matrix(self, array: np.ndarray) -> None:
-        #(self.n_times, self.n_baselines, self.n_channels, _, _) = array.shape
-
-        # There should be a check on the shape here. I don't think we want to allow, for instance,
-        # an axis to be averaged while also having the dimensions stored in the object not change.
-        self._matrix = array
-
-    def calculate(self) -> None:
-        #self.initialize_jones()
-
-        self.matrix = np.identity(2, dtype=np.complex64)
-        self.matrix = np.tile(self.matrix, [self.n_times, self.n_antennas, self.n_channel_matrices, 1, 1])
-
-    @classmethod
-    def from_visibility(cls: Type[T], dataset: xr.Dataset, time_dependence: bool = False) -> T:
-        """
-        Build Jones matrix from visibility data.
-        :param dataset:
-        :param time_dependence:
-        :return:
-        """
-
-        shape = dataset.VISIBILITY.shape
-
-        # This will encode the antenna values into an integer list.
-        index, antennas = tools.encode(dataset.baseline_antenna1_name.to_numpy())
-
-        instance = cls()
-
-        # There should be a gain value for each independent antenna. Here we choose antenna_1 names but either
-        # would work fine.
-        instance.n_antennas = np.unique(dataset.baseline_antenna1_name).shape[0]
-
-        # With no polarization and one channel, n_parameters = n_antennas
-        # instance.n_parameters = n_parameters
-        instance.n_parameters = instance.n_antennas * instance.n_polarizations
-
-        polarization_axis_ = int(instance.n_polarizations // 2)
-
-        identity = np.identity(polarization_axis_, dtype=np.complex64)
-
-        instance._antenna_map = {i: str(antenna) for i, antenna in enumerate(antennas)}
-
-        instance.n_times, instance.n_baselines, instance.n_channels, instance.n_polarizations = shape
-
-        # Initialize default parameters
-        instance.parameters = np.empty((instance.n_times, instance.n_channels, instance.n_parameters),
-                                       dtype=np.complex64)
-
-        # Build on the above idea ... wrong as they may be. Simplicity first.
-        # instance.matrix = np.tile(identity, reps=[*shape, 1, 1])
-        instance.matrix = np.tile(identity, reps=[instance.n_times, instance.n_baselines, instance.n_channels, 1, 1])
-
-        return instance
+        except KeyError:
+            logger.error(f"Factory method, {factory} not implemented.")
+            return None
