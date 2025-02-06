@@ -39,3 +39,6 @@ class GainMatrix(JonesMatrix, ABC):
         # There should be a check on the shape here. I don't think we want to allow, for instance,
         # an axis to be averaged while also having the dimensions stored in the object not change.
         self._matrix = array
+
+    def example(self):
+        logger.info("This is a gain matrix specific function that does something with the data.")
