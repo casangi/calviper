@@ -24,22 +24,17 @@ class JonesMatrix(ABC):
         #self._parameters: Union[np.array, None] = None
         self._matrix: Union[np.array, None] = None
 
-
-        """
-        self.type: Union[dict, None] = {"name":None, "value":None}
-        self.dtype: Union[type, None] = None
-        """
         # public parent variable
         self.type: Union[str, None] = None
 
         #self.dtype: Union[type, None] = None
-        self.n_times: Union[int, None] = None
-        self.n_antennas: Union[int, None] = None
-        self.n_channels: Union[int, None] = None
-        self.n_polarizations: Union[int, None] = None
+        #self.n_times: Union[int, None] = None
+        #self.n_antennas: Union[int, None] = None
+        #self.n_channels: Union[int, None] = None
+        #self.n_polarizations: Union[int, None] = None
 
         #self.n_channel_matrices: Union[int, None] = None
-        self.n_parameters: Union[int, None] = None
+        #self.n_parameters: Union[int, None] = None
         self.caltable_name: Union[str, None] = None
 
         #self.channel_dependent_parameters: bool = False
@@ -58,16 +53,6 @@ class JonesMatrix(ABC):
 
     @property
     @abstractmethod
-    def parameters(self) -> np.ndarray:
-        raise NotImplementedError
-
-    @parameters.setter
-    @abstractmethod
-    def parameters(self, array: np.array) -> None:
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
     def matrix(self) -> np.ndarray:
         return self._matrix
 
@@ -76,13 +61,10 @@ class JonesMatrix(ABC):
     def matrix(self, array: np.array) -> np.ndarray:
         raise NotImplementedError
 
-    @abstractmethod
-    def calculate(self) -> None:
-        raise NotImplementedError
-
     # Inherited method properties
     @classmethod
     def from_parameters(cls: Type[T], parameters: dict) -> T:
+        # This is deprecated at the moment, I'll add it back in when I figure out what is needed.
         import inspect
 
         obj = cls()
@@ -110,46 +92,15 @@ class JonesMatrix(ABC):
         vars(obj).update(updated_params)
 
         return obj
-
+    '''
     @classmethod
     def from_visibility(cls: Type[T], data: xr.Dataset, time_dependence: bool = False) -> T:
-        # from the xarray set the n_times n_anttenas and n_channels properties
-        # shape is (time, baseline_id, channel, polarization)
-        # in this case expecting the data.VISIBILITY (?)
-        # if a property has no shape then it is just 1 i.e. 1 time, polarization, or channel (can I even assert this universally?)
-        obj = cls()
-
-        if 'time' in data.coords and data['time'].shape:
-            obj.n_times = len(data['time'])
-        else:
-            obj.n_times = 1
-
-        if 'frequency' in data.coords and data['frequency'].shape:
-            obj.n_channels = len(data['frequency'])
-        else:
-            obj.n_channels = 1
-
-        if data['polarization'].shape:
-            obj.n_polarizations = len(data['polarization'])
-        else:
-            obj.n_polarizations = 1
-        # calculate n_antennas from baselines
-        if data['baseline_id'].shape:
-            n_baselines = len(data['baseline_id'])
-        else:
-            n_baselines = 1
-
-        obj.n_antennas = int(0.5 * (np.sqrt(8 * n_baselines + 1) + 1))
-
-        # matrix is computed VISIBILITES?
-        obj.matrix = data.compute()
-        
-        return obj
+        return cls
 
     # Commenting all these out for the moment. They were written in line with George's original code
     # but that was based on a different workflow than I am foreseeing at the moment. These will be
     # added back, if needed, as work progresses.
-    '''
+    
     def initialize_parameters(self, dtype: np.dtype, shape: tuple = None):
         # Set data type
         self.type = dtype

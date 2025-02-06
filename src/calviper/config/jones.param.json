@@ -1,0 +1,11 @@
+{
+  "CalibrationMatrix.create_jones": {
+    "factory": {
+      "nullable": false,
+      "required": true,
+      "type": [
+        "string"
+      ]
+    }
+  }
+}
