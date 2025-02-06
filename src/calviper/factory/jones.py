@@ -60,7 +60,7 @@ class GainMatrixDataset(BaseJonesMatrix):
 
     @staticmethod
     def empty_like(dataset: xr.Dataset) -> Dataset:
-        antenna = dataset.antenna_xds.antenna_name.values
+        antenna = np.unique(dataset.baseline_antenna1_name.values)
         polarizations = np.unique([p for value in dataset.polarization.values for p in list(value)])
 
         dims = dict(
@@ -76,6 +76,7 @@ class GainMatrixDataset(BaseJonesMatrix):
             frequency=(["frequency"], dataset.frequency.values),
             polarization=(["polarization"], polarizations),
             scan_id=(["scan_id"], dataset.scan_number.values),
+            baseline_id=(["baseline_id"], dataset.baseline_id.values),
         )
 
         xds = xr.Dataset()
