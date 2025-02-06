@@ -116,12 +116,12 @@ class JonesMatrix(ABC):
         # if a property has no shape then it is just 1 i.e. 1 time, polarization, or channel (can I even assert this universally?)
         obj = cls()
 
-        if data['time'].shape:
+        if 'time' in data.coords and data['time'].shape:
             obj.n_times = len(data['time'])
         else:
             obj.n_times = 1
 
-        if data['frequency'].shape:
+        if 'frequency' in data.coords and data['frequency'].shape:
             obj.n_channels = len(data['frequency'])
         else:
             obj.n_channels = 1

@@ -31,25 +31,46 @@ class ScipySolverLeastSquares:
 
         return ((vis_obs - res).flatten())
     
-    def chi_square(self, ant_set, vis_dict, vis_model, stepsize=0.01):
+    def chi_square(self, ant_set, vis_dict, vis_model, stepsize=0.1):
         """
         This is the derivative of chi squared to minimize
+        currently just do XX solutions?
+        This is more of a temp solver TODO: see Josh's verison for more effective solution
         """
-        num_sum = np.zeros(4, dtype=complex)
-        denom_sum = np.zeros(4, dtype=complex)
+        # do one pol for now
         tmp = {}
+        diff = 100
+        weight = 1 #/ (0.5 * 0.5)
 
         for i in ant_set:
+            num_sum = (0 + 0j)#np.zeros(4, dtype=complex)
+            denom_sum = (0 + 0j)#np.zeros(4, dtype=complex)
+
             for j in ant_set:
                 # ignore current ant
                 if i == j: continue;
                 
-                cur_obs = vis_dict[(i, j)]
-                num_sum += cur_obs * self.solved_vals[j] * vis_model
-                denom_sum += np.conj(cur_obs) * np.conj(self.solved_vals[j]) * np.conj(vis_model)
+                # index 0 is XX pol
+                # for now we solve for the ant_x polarization solution using just the XX
+                if (i,j) in vis_dict:
+                    #print("NON CONJ")
+                    cur_obs = vis_dict[(i, j)][0]
+                    num_sum += cur_obs * self.solved_vals[j][0] * (1 + 0j) * weight
+                elif (j,i) in vis_dict:
+                    #print("CONJ VER")
+                    cur_obs = np.conj(vis_dict[(j,i)][0])
+                    num_sum += cur_obs * self.solved_vals[j][0] * (np.conj(1 + 0j)) * weight
+                #print("FLIPPY: ", vis_dict[(i,j)][0], vis_dict[(j,i)][0], np.conj(1+0j))
+                #flip_obs = vis_dict[(j, i)][0]
+                # for multiple pols use correct vis model pol
+                #num_sum += cur_obs * self.solved_vals[j][0] * (1 + 0j) * weight
+                #num_sum += np.conj(cur_obs) * self.solved_vals[j][0] * (np.conj(1 + 0j)) * weight
+                denom_sum += self.solved_vals[j][0] * np.conj(self.solved_vals[j][0]) * (1+0j) * np.conj(1 + 0j) * weight
 
             gain = num_sum / denom_sum
-            diff = gain - self.solved_vals[i]
+            # again make sure we use the right pol
+            diff = gain - self.solved_vals[i][0]
+            #print(self.solved_vals[i][0])
             tmp[i] = self.solved_vals[i] + stepsize * diff
             # if tracking
             self.tracked_vals[i].append(tmp[i])
@@ -81,8 +102,8 @@ class ScipySolverLeastSquares:
             if (_ant1, _ant2) not in vis_dict.keys():
                 vis_dict[(_ant1, _ant2)] = _vis
 
-            if (_ant2, _ant1) not in vis_dict.keys():
-                vis_dict[(_ant2, _ant1)] = _vis
+            #if (_ant2, _ant1) not in vis_dict.keys():
+            #    vis_dict[(_ant2, _ant1)] = np.conj(_vis)
 
         return vis_dict
     
@@ -97,6 +118,10 @@ class ScipySolverLeastSquares:
         '''
         self.solved_vals = {}
         vis_dict = self.build_vis_dict()
+        #print("VIS DICT:")
+        #for k, v in vis_dict.items():
+        #    print(k,": ", v[0])
+        diff = 1 + 0j
 
         ant_set = set(self.obs.matrix.baseline_antenna1_name.values)
         ant_set = ant_set.union(set(self.obs.matrix.baseline_antenna2_name.values))
@@ -130,18 +155,23 @@ class ScipySolverLeastSquares:
                     self.tracked_vals[j].append(res.x[4:])
         '''
         for i in range(100):
-            stepsize = 0.1 / (i+1)
-            diff = self.chi_square(ant_set, vis_dict, self.model,stepsize)
-        print(diff)
+        #while abs(diff) > 0.1:
+            stepsize = .1 #/ (i+1)
+            diff = self.chi_square(ant_set, vis_dict, self.model, stepsize)
+            #print(diff)
+        print(abs(diff))
 
         #print(self.solved_vals)
         return self.solved_vals
+    
+    def get_tracked_vals(self):
+        return self.tracked_vals
     
     def plot_solution(self, pol=0):
         for k, v in self.tracked_vals.items():
             p = [abs(i) for i in v]
             plt.plot(p)
-            break
+            #break
         
         plt.show()
 

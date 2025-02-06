@@ -107,6 +107,7 @@ class VisEquation(ABC):
         # do solve (currently assuming a dict on return for gains but probably an ndarray)
         solver = ScipySolverLeastSquares(self.solve_vis_jones)
         solution_dict = solver.solve(tracking=plot)
+        tracked_vals = solver.get_tracked_vals()
         # just test plot
         if plot:
             solver.plot_solution()
@@ -115,4 +116,4 @@ class VisEquation(ABC):
         xarr_out = solver.generate_cal_table(solution_dict)
 
         # return table
-        return xarr_out
+        return xarr_out, tracked_vals

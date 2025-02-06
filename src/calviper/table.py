@@ -52,7 +52,12 @@ class GainTable(BaseCalibrationTable):
 
     @staticmethod
     def empty_like(dataset: xr.Dataset)->xr.Dataset:
+        # not all data will have antenna_xds?
         antenna = dataset.antenna_xds.antenna_name.values
+        # Get the full list of antenna from the baselines
+        #ants1 = set(dataset.baseline_antenna1_name.values)
+        #ants2 = set(dataset.baseline_antenna2_name.values)
+        #antenna = list(ants1.union(ants2))
         polarizations = np.unique([p for value in dataset.polarization.values for p in list(value)])
 
         dims = dict(

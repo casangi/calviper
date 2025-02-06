@@ -1,0 +1,22 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "time"
+    ],
+    "effective_integration_time": "EFFECTIVE_INTEGRATION_TIME",
+    "format": "unix",
+    "integration_time": {
+        "attrs": {
+            "type": "quantity",
+            "units": [
+                "s"
+            ]
+        },
+        "data": 3.4559999008178712,
+        "dims": []
+    },
+    "scale": "utc",
+    "type": "time",
+    "units": [
+        "s"
+    ]
+}
