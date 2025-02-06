@@ -16,22 +16,22 @@ from xarray import Dataset
 
 class BaseJonesMatrix(ABC):
 
-    # Base calibration table abstract class
+    # Base calibration matrix abstract class
     @abstractmethod
     def generate(self, coords: dict) -> Union[xr.Dataset, None]:
         pass
 
 
 class JonesFactory(ABC):
-    # Base factory class for table factory
+    # Base factory class for matrix factory
     @abstractmethod
     def create_jones(self, factory: Union[None, str]):
         pass
 
 @accessor.register_subclass
-class GainMatrixDataSet(BaseJonesMatrix):
+class GainMatrixDataset(BaseJonesMatrix):
 
-    # This is intended to be an implementation of a gain table simulator. It is
+    # This is intended to be an implementation of a gain jones simulator. It is
     # currently very rough and filled with random numbers. Generally based on the
     # original cal.py
     def generate(self, coords: dict) -> None:
@@ -107,10 +107,10 @@ class CalibrationMatrix(JonesFactory, ABC):
 
     def __init__(self):
         self.factory_list = {
-            "gain": GainMatrixDataSet,
+            "gain": GainMatrixDataset,
         }
 
-    #@toolviper.utils.parameter.validate()
+    @toolviper.utils.parameter.validate()
     def create_jones(self, factory: str) -> Union[BaseJonesMatrix, None]:
         try:
             return self.factory_list[factory]()

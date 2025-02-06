@@ -28,13 +28,13 @@ class JonesMatrix(ABC):
         self.type: Union[str, None] = None
 
         #self.dtype: Union[type, None] = None
-        self.n_times: Union[int, None] = None
-        self.n_antennas: Union[int, None] = None
-        self.n_channels: Union[int, None] = None
-        self.n_polarizations: Union[int, None] = None
+        #self.n_times: Union[int, None] = None
+        #self.n_antennas: Union[int, None] = None
+        #self.n_channels: Union[int, None] = None
+        #self.n_polarizations: Union[int, None] = None
 
         #self.n_channel_matrices: Union[int, None] = None
-        self.n_parameters: Union[int, None] = None
+        #self.n_parameters: Union[int, None] = None
         self.caltable_name: Union[str, None] = None
 
         #self.channel_dependent_parameters: bool = False
@@ -53,16 +53,6 @@ class JonesMatrix(ABC):
 
     @property
     @abstractmethod
-    def parameters(self) -> np.ndarray:
-        raise NotImplementedError
-
-    @parameters.setter
-    @abstractmethod
-    def parameters(self, array: np.array) -> None:
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
     def matrix(self) -> np.ndarray:
         return self._matrix
 
@@ -71,13 +61,10 @@ class JonesMatrix(ABC):
     def matrix(self, array: np.array) -> np.ndarray:
         raise NotImplementedError
 
-    @abstractmethod
-    def calculate(self) -> None:
-        raise NotImplementedError
-
     # Inherited method properties
     @classmethod
     def from_parameters(cls: Type[T], parameters: dict) -> T:
+        # This is deprecated at the moment, I'll add it back in when I figure out what is needed.
         import inspect
 
         obj = cls()
@@ -105,7 +92,7 @@ class JonesMatrix(ABC):
         vars(obj).update(updated_params)
 
         return obj
-
+    '''
     @classmethod
     def from_visibility(cls: Type[T], data: xr.Dataset, time_dependence: bool = False) -> T:
         return cls
@@ -113,7 +100,7 @@ class JonesMatrix(ABC):
     # Commenting all these out for the moment. They were written in line with George's original code
     # but that was based on a different workflow than I am foreseeing at the moment. These will be
     # added back, if needed, as work progresses.
-    '''
+    
     def initialize_parameters(self, dtype: np.dtype, shape: tuple = None):
         # Set data type
         self.type = dtype

@@ -1,3 +1,5 @@
+from abc import ABC
+
 import numpy as np
 import xarray as xr
 
@@ -10,7 +12,7 @@ from typing import TypeVar, Type, Union
 T = TypeVar('T', bound='Parent')
 
 
-class GainJones(JonesMatrix):
+class GainJones(JonesMatrix, ABC):
     def __init__(self):
         super(GainJones, self).__init__()
 
@@ -31,7 +33,7 @@ class GainJones(JonesMatrix):
         self._antenna_map = None
 
         self.name: str = "GainJonesMatrix"
-
+    '''
     # This is just an example of how this would be done. There should certainly be checks and customization
     # but for now just set the values simply as the original code doesn't do anything more complicated for now.
     @property
@@ -41,7 +43,7 @@ class GainJones(JonesMatrix):
     @parameters.setter
     def parameters(self, array: np.ndarray) -> None:
         self._parameters = array
-
+    '''
     @property
     def matrix(self) -> np.ndarray:
         return self._matrix
@@ -53,7 +55,7 @@ class GainJones(JonesMatrix):
         # There should be a check on the shape here. I don't think we want to allow, for instance,
         # an axis to be averaged while also having the dimensions stored in the object not change.
         self._matrix = array
-
+    '''
     def calculate(self) -> None:
         #self.initialize_jones()
 
@@ -101,3 +103,4 @@ class GainJones(JonesMatrix):
         instance.matrix = np.tile(identity, reps=[instance.n_times, instance.n_baselines, instance.n_channels, 1, 1])
 
         return instance
+    '''
