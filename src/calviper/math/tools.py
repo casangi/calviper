@@ -11,16 +11,20 @@ from sklearn.preprocessing import LabelEncoder
 
 @numba.njit
 def to_baseline(array):
+
     baseline = 0
     n_frequency, n_polarization, n_antenna = array.shape
 
-    n_baseline = int(n_antenna * (n_antenna - 1) * 0.5)
-    print(n_antenna)
+    # This assumes you don't have autocorrelations
+    n_baseline = int(n_antenna * (n_antenna - 1.0) * 0.5)
 
     n_array = np.zeros((n_baseline, n_frequency, n_polarization), dtype=np.complex64)
 
     for ant1 in range(n_antenna):
         for ant2 in range(ant1, n_antenna):
+            if ant1 == ant2:
+                continue
+
             for frequency in range(n_frequency):
                 for polarization in range(n_polarization):
                     n_array[baseline, frequency, polarization] = array[frequency, polarization, ant1] * array[
