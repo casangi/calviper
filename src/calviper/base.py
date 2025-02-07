@@ -25,12 +25,12 @@ class JonesMatrix(ABC):
         self._matrix: Union[np.array, None] = None
 
 
-        """
+        # temp using this instead of int enum for vis equation assembly
         self.type: Union[dict, None] = {"name":None, "value":None}
         self.dtype: Union[type, None] = None
-        """
+        
         # public parent variable
-        self.type: Union[str, None] = None
+        #self.type: Union[str, None] = None
 
         #self.dtype: Union[type, None] = None
         self.n_times: Union[int, None] = None

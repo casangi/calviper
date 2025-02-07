@@ -8,6 +8,7 @@ from toolviper.utils import logger
 from calviper.solver import ScipySolverLeastSquares
 from abc import ABC, abstractmethod
 from typing import TypeVar, Type, Union
+import calviper as cv
 
 # Vis equation components
 # Ordered VisEquation Enum
@@ -104,6 +105,14 @@ class VisEquation(ABC):
 
         Returns: An xarray caltable
         """
+        # test using Josh's solver one pol for now
+        #vis_array = self.solve_vis_jones.matrix.data[:, 0]
+        #index_a, _ = cv.math.tools.encode(self.solve_vis_jones.matrix.baseline_antenna1_name.to_numpy())
+        #index_b, _ = cv.math.tools.encode(self.solve_vis_jones.matrix.baseline_antenna2_name.to_numpy())
+
+        #V = cv.math.tools.build_visibility_matrix(array=vis_array, index_a=index_a, index_b=index_b)
+
+
         # do solve (currently assuming a dict on return for gains but probably an ndarray)
         solver = ScipySolverLeastSquares(self.solve_vis_jones)
         solution_dict = solver.solve(tracking=plot)

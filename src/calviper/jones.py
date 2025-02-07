@@ -16,17 +16,18 @@ T = TypeVar('T', bound='Parent')
 class GainJones(JonesMatrix, ABC):
     def __init__(self):
         super(GainJones).__init__()
-        """
+
         # public parent variable
         self.type: Union[dict, None] = {"name":"G", "value":30} # ?Setting to dict for now to avoid using the standardVETypeEnum class?
         self.dtype = np.complex64
+        """
         self.n_polarizations: Union[int, None] = 2
         self.n_parameters: Union[int, None] = 1
         """
 
         # Public parent variable
         self.n_times = None
-        self.type: Union[str, None] = "G"
+        #self.type: Union[str, None] = "G"
 
         #self.dtype = np.complex64
         self.n_polarizations: Union[int, None] = 4
@@ -41,7 +42,7 @@ class GainJones(JonesMatrix, ABC):
         self._antenna_map = None
 
         self.name: str = "GainJonesMatrix"
-    '''
+    
     # This is just an example of how this would be done. There should certainly be checks and customization
     # but for now just set the values simply as the original code doesn't do anything more complicated for now.
     @property
@@ -51,7 +52,7 @@ class GainJones(JonesMatrix, ABC):
     @parameters.setter
     def parameters(self, array: np.ndarray) -> None:
         self._parameters = array
-    '''
+    
     @property
     def matrix(self) -> np.ndarray:
         return self._matrix
@@ -63,13 +64,14 @@ class GainJones(JonesMatrix, ABC):
         # There should be a check on the shape here. I don't think we want to allow, for instance,
         # an axis to be averaged while also having the dimensions stored in the object not change.
         self._matrix = array
-    '''
+    
     def calculate(self) -> None:
         #self.initialize_jones()
 
         self.matrix = np.identity(2, dtype=np.complex64)
         self.matrix = np.tile(self.matrix, [self.n_times, self.n_antennas, self.n_channel_matrices, 1, 1])
-
+    
+    '''
     @classmethod
     def from_visibility(cls: Type[T], dataset: xr.Dataset, time_dependence: bool = False) -> T:
         """

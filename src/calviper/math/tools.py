@@ -128,7 +128,8 @@ def build_visibility_matrix(array: np.ndarray, index_a: np.ndarray, index_b: np.
     n_antennas = np.unique(index_a).shape[0]
 
     # Dimensions are (n_baselines, n_channel, n_polarization) but we are replacing the first index with n_antenna
-    _, n_channel, n_polarization = array.shape
+    #_, n_channel, n_polarization = array.shape
+    n_channel = n_polarization = 1
 
     # Build matrix
     # -- Building a matrix that works better with the regression algorithm. I would really prefer not to
@@ -146,7 +147,7 @@ def build_visibility_matrix(array: np.ndarray, index_a: np.ndarray, index_b: np.
 
                 if i == j:
                     continue
-
+                                                        # no chan and pol dim for now?
                 matrix_[channel, polarization, i, j] = array[baseline, channel, polarization]
                 matrix_[channel, polarization, j, i] = np.conj(array[baseline, channel, polarization])
 
