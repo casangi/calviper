@@ -42,3 +42,16 @@ class GainMatrix(JonesMatrix, ABC):
 
     def example(self):
         logger.info("This is a gain matrix specific function that does something with the data.")
+
+    def empty(self):
+        identity = np.identity(self._object.sizes["polarization"], dtype=self.dtype)
+
+        matrix = xr.DataArray(
+            np.tile(identity, reps=[self._object.sizes["time"], self._object.sizes["baseline_id"], self._object.sizes["frequency"], 1, 1]),
+            dims=("time", "baseline_id", "frequency", "p",  "q"),
+            coords={"time": self._object.time, "baseline_id": self._object.baseline_id, "frequency": self._object.frequency},
+        )
+
+        # Add the new variable to the dataset
+        self._object["MATRIX"]=matrix
+
