@@ -9,6 +9,28 @@ from typing import Union, List, Any
 from sklearn.preprocessing import LabelEncoder
 
 
+@numba.njit
+def to_baseline(array):
+    baseline = 0
+    n_frequency, n_polarization, n_antenna = array.shape
+
+    n_baseline = int(n_antenna * (n_antenna - 1) * 0.5)
+    print(n_antenna)
+
+    n_array = np.zeros((n_baseline, n_frequency, n_polarization), dtype=np.complex64)
+
+    for ant1 in range(n_antenna):
+        for ant2 in range(ant1, n_antenna):
+            for frequency in range(n_frequency):
+                for polarization in range(n_polarization):
+                    n_array[baseline, frequency, polarization] = array[frequency, polarization, ant1] * array[
+                        frequency, polarization, ant2]
+
+            baseline += 1
+
+    return n_array
+
+
 def ravel(array: np.ndarray):
     """
     Convert parameter array to array of polarization correlation matrices.
