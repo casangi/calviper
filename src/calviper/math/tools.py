@@ -4,7 +4,9 @@ import numpy as np
 
 import toolviper.utils.logger as logger
 
-from typing import Union, List
+from typing import Union, List, Any
+
+from sklearn.preprocessing import LabelEncoder
 
 
 def ravel(array: np.ndarray):
@@ -42,7 +44,7 @@ def unravel(array: np.ndarray) -> Union[np.ndarray, None]:
     return array.reshape(shape_)
 
 
-def encode(antennas: Union[List[str], np.ndarray]) -> tuple[np.ndarray, np.ndarray]:
+def encode(antennas: Union[List[str], np.ndarray]) -> tuple[LabelEncoder, Any]:
     """
     Encode the antenna names into a list of unique integers identifiers.
     :param antennas: list of antennas to encode
@@ -56,7 +58,8 @@ def encode(antennas: Union[List[str], np.ndarray]) -> tuple[np.ndarray, np.ndarr
 
     encoder.fit(names)
 
-    return encoder.transform(antennas), encoder.classes_
+    #return encoder.transform(antennas), encoder.classes_
+    return encoder, encoder.classes_
 
 
 def compute_index(ant, chan, pol, shape=None):
@@ -125,7 +128,7 @@ def build_visibility_matrix(array: np.ndarray, index_a: np.ndarray, index_b: np.
     size = index_a.shape[0]
 
     # Determine the number of unique antennas
-    n_antennas = np.unique(index_a).shape[0]
+    n_antennas = np.union1d(index_a, index_b).shape[0]
 
     # Dimensions are (n_baselines, n_channel, n_polarization) but we are replacing the first index with n_antenna
     _, n_channel, n_polarization = array.shape
