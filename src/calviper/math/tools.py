@@ -11,6 +11,9 @@ from sklearn.preprocessing import LabelEncoder
 
 @numba.njit
 def to_baseline(array):
+    """
+    Converts a parameter array from the regression algorithm from antenna based to baseline based
+    """
 
     baseline = 0
     n_frequency, n_polarization, n_antenna = array.shape
