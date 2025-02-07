@@ -43,7 +43,7 @@ class GainMatrix(JonesMatrix, ABC):
     def example(self):
         logger.info("This is a gain matrix specific function that does something with the data.")
 
-    def empty(self):
+    def initialize(self):
         identity = np.identity(self._object.sizes["polarization"], dtype=self.dtype)
 
         matrix = xr.DataArray(
