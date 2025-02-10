@@ -55,3 +55,22 @@ class GainMatrix(JonesMatrix, ABC):
         # Add the new variable to the dataset
         self._object["MATRIX"]=matrix
 
+    def transform(self)->Union[None, np.ndarray]:
+
+        if "baseline" in self._object.PARAMETER.dims:
+            logger.info("Baseline transformation applied already.")
+            return None
+
+        _, _, n_parameter = self._object.PARAMETER.shape
+
+        identity = np.identity(2, dtype=np.complex64)
+
+        array = tools.to_baseline(self._object.PARAMETER.value)
+
+        n_baseline, n_frequency, _ = array.shape
+
+        identity_tensor = np.tile(identity, reps=[n_baseline, n_frequency, 1, 1])
+
+        array_ = array.reshape(n_baseline, n_frequency, 2, 2)
+
+        return identity_tensor * array_
