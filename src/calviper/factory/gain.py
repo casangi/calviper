@@ -33,12 +33,18 @@ class GainMatrix(JonesMatrix, ABC):
         return self._matrix
 
     @matrix.setter
-    def matrix(self, array: np.ndarray) -> None:
+    def matrix(self, data: np.ndarray) -> None:
         # (self.n_times, self.n_baselines, self.n_channels, _, _) = array.shape
 
         # There should be a check on the shape here. I don't think we want to allow, for instance,
         # an axis to be averaged while also having the dimensions stored in the object not change.
-        self._matrix = array
+        self._matrix = data
+
+    @property
+    def parameter(self, data: Union[xr.DataArray, np.ndarray]) -> None:
+        if type(data) == np.ndarray:
+            assert len(data.shape) < 4, logger.error("Parameter dimensions can't be larger then four.")
+            dims = None
 
     def example(self):
         logger.info("This is a gain matrix specific function that does something with the data.")

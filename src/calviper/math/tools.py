@@ -147,7 +147,7 @@ def build_visibility_matrix_singleton(array: np.ndarray, index_a: np.ndarray, in
 @numba.njit()
 def build_visibility_matrix(array: np.ndarray, index_a: np.ndarray, index_b: np.ndarray) -> np.ndarray:
     """
-    Build a visibility matrix from a visibility array with zeros for autocorrelation.
+    Build a visibility matrix from a visibility array with zeros for auto-correlation.
     :param index_b:
     :param index_a:
     :param array: (numpy.ndarray) visibility array
@@ -161,6 +161,7 @@ def build_visibility_matrix(array: np.ndarray, index_a: np.ndarray, index_b: np.
 
     # Dimensions are (n_baselines, n_channel, n_polarization) but we are replacing the first index with n_antenna
     _, n_channel, n_polarization = array.shape
+    n_polarization = int(np.sqrt(n_polarization))
 
     # Build matrix
     # -- Building a matrix that works better with the regression algorithm. I would really prefer not to
