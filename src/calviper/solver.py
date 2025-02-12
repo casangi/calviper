@@ -11,7 +11,7 @@ class ScipySolverLeastSquares:
     Probably a matrix of calibrated values?
     '''
 
-    def __init__(self, obs, model=[1+0j,1+0j,1+0j,1+0j], start_guess=[1+0j,1+0j,1+0j,1+0j]):
+    def __init__(self, obs, model=[1+0j,1+0j,1+0j,1+0j], start_guess=[(1+0j), (1+0j)]):
         self.obs = obs
         self.model = model
         self.start_guess = start_guess
@@ -38,45 +38,60 @@ class ScipySolverLeastSquares:
         This is more of a temp solver TODO: see Josh's verison for more effective solution
         """
         # do one pol for now
-        tmp = {}
+        tmp = self.solved_vals.copy()
         diff = 100
         weight = 1 #/ (0.5 * 0.5)
 
-        for i in ant_set:
-            num_sum = (0 + 0j)#np.zeros(4, dtype=complex)
-            denom_sum = (0 + 0j)#np.zeros(4, dtype=complex)
+        # do this for each pol pair XX XY
+        #                           YX YY
+        # solve for Gx and Gy
+        # Vtrue = Gxi Vij Gxj
+        # solved_vals should have just Gx Gy
+        # Pols [GxGx, GxGy, GyGx, GyGy]
+        #      [(0,0), (0,1), (1,0), (1,1)]
+        pols = [(0,0), (0,1), (1,0), (1,1)]
+        # should be 4
+        for p in range(4):
+            for i in ant_set:
+                num_sum = (0 + 0j)#np.zeros(4, dtype=complex)
+                denom_sum = (0 + 0j)#np.zeros(4, dtype=complex)
 
-            for j in ant_set:
-                # ignore current ant
-                if i == j: continue;
-                
-                # index 0 is XX pol
-                # for now we solve for the ant_x polarization solution using just the XX
-                if (i,j) in vis_dict:
-                    #print("NON CONJ")
-                    cur_obs = vis_dict[(i, j)][0]
-                    num_sum += cur_obs * self.solved_vals[j][0] * (1 + 0j) * weight
-                elif (j,i) in vis_dict:
-                    #print("CONJ VER")
-                    cur_obs = np.conj(vis_dict[(j,i)][0])
-                    num_sum += cur_obs * self.solved_vals[j][0] * (np.conj(1 + 0j)) * weight
-                #print("FLIPPY: ", vis_dict[(i,j)][0], vis_dict[(j,i)][0], np.conj(1+0j))
-                #flip_obs = vis_dict[(j, i)][0]
-                # for multiple pols use correct vis model pol
-                #num_sum += cur_obs * self.solved_vals[j][0] * (1 + 0j) * weight
-                #num_sum += np.conj(cur_obs) * self.solved_vals[j][0] * (np.conj(1 + 0j)) * weight
-                denom_sum += self.solved_vals[j][0] * np.conj(self.solved_vals[j][0]) * (1+0j) * np.conj(1 + 0j) * weight
+                for j in ant_set:
+                    # ignore current ant
+                    if i == j: continue;
+                    
+                    # index 0 is XX pol
+                    # for now we solve for the ant_x polarization solution using just the XX
+                    if (i,j) in vis_dict:
+                        #print("NON CONJ")
+                        cur_obs = vis_dict[(i, j)][p]
+                        num_sum += cur_obs * self.solved_vals[j][pols[p][1]] * (1 + 0j) * weight
+                    elif (j,i) in vis_dict:
+                        #print("CONJ VER")
+                        cur_obs = np.conj(vis_dict[(j,i)][p])
+                        num_sum += cur_obs * self.solved_vals[j][pols[p][1]] * (np.conj(1 + 0j)) * weight
+                    #print("FLIPPY: ", vis_dict[(i,j)][0], vis_dict[(j,i)][0], np.conj(1+0j))
+                    #flip_obs = vis_dict[(j, i)][0]
+                    # for multiple pols use correct vis model pol
+                    #num_sum += cur_obs * self.solved_vals[j][0] * (1 + 0j) * weight
+                    #num_sum += np.conj(cur_obs) * self.solved_vals[j][0] * (np.conj(1 + 0j)) * weight
+                    denom_sum += self.solved_vals[j][pols[p][1]] * np.conj(self.solved_vals[j][pols[p][1]]) * (1+0j) * np.conj(1 + 0j) * weight
 
-            gain = num_sum / denom_sum
-            # again make sure we use the right pol
-            diff = gain - self.solved_vals[i][0]
-            #print(self.solved_vals[i][0])
-            tmp[i] = self.solved_vals[i] + stepsize * diff
-            # if tracking
-            self.tracked_vals[i].append(tmp[i])
+                gain = num_sum / denom_sum
+                #print(i, gain)
+                # again make sure we use the right pol
+                diff = gain - self.solved_vals[i][pols[p][0]]
+                #print(diff)
+                #print(self.solved_vals[i][0])
+                #print(tmp[i][0])
+                tmp[i][pols[p][0]] = self.solved_vals[i][pols[p][0]] + (stepsize * diff)
+                #print(i, tmp[i])
+                # if tracking
+                self.tracked_vals[i].append(tmp[i].copy())
 
-        #print(grad)
-        self.solved_vals = tmp
+            #print(grad)
+            # need sln for Gx and Gy for each ant
+            self.solved_vals = tmp
         return diff
 
 
@@ -126,7 +141,7 @@ class ScipySolverLeastSquares:
         ant_set = set(self.obs.matrix.baseline_antenna1_name.values)
         ant_set = ant_set.union(set(self.obs.matrix.baseline_antenna2_name.values))
         
-        # For all ants in baselines init solution to starting guess
+        # For all ants in baselines init solution to starting guess Gx = 1+0j and Gy = 1+0j
         for i in self.obs.matrix:
             self.solved_vals.setdefault(str(i.baseline_antenna1_name.values), np.asarray(self.start_guess))
             self.solved_vals.setdefault(str(i.baseline_antenna2_name.values), np.asarray(self.start_guess))
@@ -169,9 +184,10 @@ class ScipySolverLeastSquares:
     
     def plot_solution(self, pol=0):
         for k, v in self.tracked_vals.items():
-            p = [abs(i) for i in v]
+            #print(k, np.asarray(v)[:, pol])
+            p = [abs(i) for i in np.asarray(v)[:, pol]]
             plt.plot(p)
-            #break
+            break
         
         plt.show()
 

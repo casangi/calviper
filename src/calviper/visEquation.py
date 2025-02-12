@@ -107,11 +107,27 @@ class VisEquation(ABC):
         """
         # test using Josh's solver one pol for now
         #vis_array = self.solve_vis_jones.matrix.data[:, 0]
-        #index_a, _ = cv.math.tools.encode(self.solve_vis_jones.matrix.baseline_antenna1_name.to_numpy())
-        #index_b, _ = cv.math.tools.encode(self.solve_vis_jones.matrix.baseline_antenna2_name.to_numpy())
+        '''
+        full_antenna_list = np.union1d(
+            self.solve_vis_jones.matrix.baseline_antenna1_name.to_numpy(),
+            self.solve_vis_jones.matrix.baseline_antenna2_name.to_numpy()
+        )
 
-        #V = cv.math.tools.build_visibility_matrix(array=vis_array, index_a=index_a, index_b=index_b)
+        encoder, antennas = cv.math.tools.encode(full_antenna_list)
+        index_a = encoder.transform(self.solve_vis_jones.matrix.baseline_antenna1_name.to_numpy())
+        index_b = encoder.transform(self.solve_vis_jones.matrix.baseline_antenna2_name.to_numpy())
 
+        vis_array = self.solve_vis_jones.matrix.data
+        v_ = cv.math.tools.build_visibility_matrix(array=vis_array, index_a=index_a, index_b=index_b)
+
+        solver = cv.math.solver.least_squares.LeastSquaresSolver()
+        gain_solutions = solver.solve(
+            vis = v_,
+            iterations=50,
+            optimizer=cv.math.optimizer.MeanSquaredError(alpha=0.25),
+            stopping=1e-4
+        )
+        '''
 
         # do solve (currently assuming a dict on return for gains but probably an ndarray)
         solver = ScipySolverLeastSquares(self.solve_vis_jones)
@@ -120,9 +136,17 @@ class VisEquation(ABC):
         # just test plot
         if plot:
             solver.plot_solution()
+            #t = np.linspace(1, len(solver.losses), len(solver.losses))
+
+            #plt.scatter(solver.losses, t)
+            #plt.show()
 
         # build table (type specific? ant x ant) with 4 pols for each ant soln
         xarr_out = solver.generate_cal_table(solution_dict)
 
         # return table
         return xarr_out, tracked_vals
+        #cm = cv.factory.jones.CalibrationMatrix()
+        #G = cm.create_jones("gain").empty_like(self.solve_vis_jones)
+        #G.gain.empty()
+        #return solver.parameter
