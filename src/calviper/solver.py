@@ -51,7 +51,7 @@ class ScipySolverLeastSquares:
         #      [(0,0), (0,1), (1,0), (1,1)]
         pols = [(0,0), (0,1), (1,0), (1,1)]
         # should be 4
-        for p in range(4):
+        for p in [0,3]:
             for i in ant_set:
                 num_sum = (0 + 0j)#np.zeros(4, dtype=complex)
                 denom_sum = (0 + 0j)#np.zeros(4, dtype=complex)
@@ -70,11 +70,7 @@ class ScipySolverLeastSquares:
                         #print("CONJ VER")
                         cur_obs = np.conj(vis_dict[(j,i)][p])
                         num_sum += cur_obs * self.solved_vals[j][pols[p][1]] * (np.conj(1 + 0j)) * weight
-                    #print("FLIPPY: ", vis_dict[(i,j)][0], vis_dict[(j,i)][0], np.conj(1+0j))
-                    #flip_obs = vis_dict[(j, i)][0]
-                    # for multiple pols use correct vis model pol
-                    #num_sum += cur_obs * self.solved_vals[j][0] * (1 + 0j) * weight
-                    #num_sum += np.conj(cur_obs) * self.solved_vals[j][0] * (np.conj(1 + 0j)) * weight
+                        
                     denom_sum += self.solved_vals[j][pols[p][1]] * np.conj(self.solved_vals[j][pols[p][1]]) * (1+0j) * np.conj(1 + 0j) * weight
 
                 gain = num_sum / denom_sum
