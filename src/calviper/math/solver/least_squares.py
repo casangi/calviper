@@ -91,7 +91,7 @@ class LeastSquaresSolver:
         # This is an attempt to do the solving in a vectorized way
 
         # Unpack the shape
-        n_channel, n_polarization, n_antenna1, n_antenna2 = vis.shape
+        _, n_channel, n_polarization, n_antenna1, n_antenna2 = vis.shape
 
         assert n_antenna1 == n_antenna2, logger.error("Antenna indices don't match")
 

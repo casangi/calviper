@@ -160,28 +160,29 @@ def build_visibility_matrix(array: np.ndarray, index_a: np.ndarray, index_b: np.
     n_antennas = np.union1d(index_a, index_b).shape[0]
 
     # Dimensions are (n_baselines, n_channel, n_polarization) but we are replacing the first index with n_antenna
-    _, n_channel, n_polarization = array.shape
+    n_times, _, n_channel, n_polarization = array.shape
     n_polarization = int(np.sqrt(n_polarization))
 
     # Build matrix
     # -- Building a matrix that works better with the regression algorithm. I would really prefer not to
     # -- completely flip the axes but at the C-level, using jit(), it should fine fine for the time being.
     # -- This also allows for effective vectorization in the solver.
-    matrix_ = np.zeros((n_channel, n_polarization, n_antennas, n_antennas), dtype=np.complex64)
+    matrix_ = np.zeros((n_times, n_channel, n_polarization, n_antennas, n_antennas), dtype=np.complex64)
 
     # This only works with n_channel = 0, n_polarization=0 at the moment.
     for baseline in range(size):
-        for channel in range(n_channel):
-            for polarization in range(n_polarization):
+        for time in range(n_times):
+            for channel in range(n_channel):
+                for polarization in range(n_polarization):
 
-                i = index_a[baseline]
-                j = index_b[baseline]
+                    i = index_a[baseline]
+                    j = index_b[baseline]
 
-                if i == j:
-                    continue
+                    if i == j:
+                        continue
 
-                matrix_[channel, polarization, i, j] = array[baseline, channel, polarization]
-                matrix_[channel, polarization, j, i] = np.conj(array[baseline, channel, polarization])
+                    matrix_[time, channel, polarization, i, j] = array[time, baseline, channel, polarization]
+                    matrix_[time, channel, polarization, j, i] = np.conj(array[time, baseline, channel, polarization])
 
     return matrix_
 
