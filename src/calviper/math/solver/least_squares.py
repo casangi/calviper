@@ -91,11 +91,11 @@ class LeastSquaresSolver:
         # This is an attempt to do the solving in a vectorized way
 
         # Unpack the shape
-        _, n_channel, n_polarization, n_antenna1, n_antenna2 = vis.shape
+        n_times, n_channel, n_polarization, n_antenna1, n_antenna2 = vis.shape
 
         assert n_antenna1 == n_antenna2, logger.error("Antenna indices don't match")
 
-        self.parameter = np.tile(0.1 * np.ones(n_antenna1, dtype=np.complex64), reps=[n_channel, n_polarization, 1])
+        self.parameter = np.tile(0.1 * np.ones(n_antenna1, dtype=np.complex64), reps=[n_times, n_channel, n_polarization, 1])
 
         # Generate point source model
         if self.model_ is None:
