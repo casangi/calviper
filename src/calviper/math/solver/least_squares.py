@@ -72,18 +72,19 @@ class LeastSquaresSolver:
     @staticmethod
     @numba.njit()
     def predict(model_, parameter)->np.ndarray:
-        n_channel, n_polarizations, n_antennas = parameter.shape
+        n_time, n_channel, n_polarizations, n_antennas = parameter.shape
         prediction = np.zeros_like(model_)
 
         # This can definitely be optimized, but I just want to test for now.
-        for channel in range(n_channel):
-            for polarization in range(n_polarizations):
-                for i in range(n_antennas):
-                    for j in range(n_antennas):
-                        if i == j:
-                            continue
+        for time in range(n_time):
+            for channel in range(n_channel):
+                for polarization in range(n_polarizations):
+                    for i in range(n_antennas):
+                        for j in range(n_antennas):
+                            if i == j:
+                                continue
 
-                        prediction[channel, polarization, i, j] = parameter[channel, polarization, i] * model_[channel, polarization, i, j] * np.conj(parameter[channel, polarization, j])
+                            prediction[time, channel, polarization, i, j] = parameter[time, channel, polarization, i] * model_[time, channel, polarization, i, j] * np.conj(parameter[time, channel, polarization, j])
 
         return prediction
 

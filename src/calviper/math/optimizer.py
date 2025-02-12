@@ -13,8 +13,8 @@ class MeanSquaredError:
         # denominator_ = np.matmul(model * model.conj(), parameter * parameter.conj())
 
         # einsum should work here *only* because we made the  diagonal of the model zeros
-        numerator_ = np.einsum('cpij,cpj,cpij->cpi', target, parameter, model.conj())
-        denominator_ = np.einsum('cpj,cpj,cpij,cpij->cpi', parameter, parameter.conj(), model, model.conj())
+        numerator_ = np.einsum('tcpij,tcpj,tcpij->tcpi', target, parameter, model.conj())
+        denominator_ = np.einsum('tcpj,tcpj,tcpij,tcpij->tcpi', parameter, parameter.conj(), model, model.conj())
         gradient_ = (numerator_ / denominator_) - parameter
 
         return gradient_
