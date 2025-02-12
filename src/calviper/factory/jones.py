@@ -60,7 +60,8 @@ class GainMatrixDataset(BaseJonesMatrix):
 
     @staticmethod
     def empty_like(dataset: xr.Dataset) -> Dataset:
-        antenna = np.unique(dataset.baseline_antenna1_name.values)
+
+        antenna = np.union1d(dataset.baseline_antenna1_name.values, dataset.baseline_antenna2_name.values)
         polarizations = np.unique([p for value in dataset.polarization.values for p in list(value)])
 
         dims = dict(

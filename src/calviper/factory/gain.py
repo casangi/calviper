@@ -33,17 +33,23 @@ class GainMatrix(JonesMatrix, ABC):
         return self._matrix
 
     @matrix.setter
-    def matrix(self, array: np.ndarray) -> None:
+    def matrix(self, data: np.ndarray) -> None:
         # (self.n_times, self.n_baselines, self.n_channels, _, _) = array.shape
 
         # There should be a check on the shape here. I don't think we want to allow, for instance,
         # an axis to be averaged while also having the dimensions stored in the object not change.
-        self._matrix = array
+        self._matrix = data
+
+    @property
+    def parameter(self, data: Union[xr.DataArray, np.ndarray]) -> None:
+        if type(data) == np.ndarray:
+            assert len(data.shape) < 4, logger.error("Parameter dimensions can't be larger then four.")
+            dims = None
 
     def example(self):
         logger.info("This is a gain matrix specific function that does something with the data.")
 
-    def empty(self):
+    def initialize(self):
         identity = np.identity(self._object.sizes["polarization"], dtype=self.dtype)
 
         matrix = xr.DataArray(
@@ -55,3 +61,22 @@ class GainMatrix(JonesMatrix, ABC):
         # Add the new variable to the dataset
         self._object["MATRIX"]=matrix
 
+    def transform(self)->Union[None, np.ndarray]:
+
+        if "baseline" in self._object.PARAMETER.dims:
+            logger.info("Baseline transformation applied already.")
+            return None
+
+        _, _, n_parameter = self._object.PARAMETER.shape
+
+        identity = np.identity(2, dtype=np.complex64)
+
+        array = tools.to_baseline(self._object.PARAMETER.value)
+
+        n_baseline, n_frequency, _ = array.shape
+
+        identity_tensor = np.tile(identity, reps=[n_baseline, n_frequency, 1, 1])
+
+        array_ = array.reshape(n_baseline, n_frequency, 2, 2)
+
+        return identity_tensor * array_

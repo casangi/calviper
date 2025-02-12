@@ -9,6 +9,35 @@ from typing import Union, List, Any
 from sklearn.preprocessing import LabelEncoder
 
 
+@numba.njit
+def to_baseline(array):
+    """
+    Converts a parameter array from the regression algorithm from antenna based to baseline based
+    """
+
+    baseline = 0
+    n_frequency, n_polarization, n_antenna = array.shape
+
+    # This assumes you don't have autocorrelations
+    n_baseline = int(n_antenna * (n_antenna - 1.0) * 0.5)
+
+    n_array = np.zeros((n_baseline, n_frequency, n_polarization), dtype=np.complex64)
+
+    for ant1 in range(n_antenna):
+        for ant2 in range(ant1, n_antenna):
+            if ant1 == ant2:
+                continue
+
+            for frequency in range(n_frequency):
+                for polarization in range(n_polarization):
+                    n_array[baseline, frequency, polarization] = array[frequency, polarization, ant1] * array[
+                        frequency, polarization, ant2]
+
+            baseline += 1
+
+    return n_array
+
+
 def ravel(array: np.ndarray):
     """
     Convert parameter array to array of polarization correlation matrices.
@@ -118,7 +147,7 @@ def build_visibility_matrix_singleton(array: np.ndarray, index_a: np.ndarray, in
 @numba.njit()
 def build_visibility_matrix(array: np.ndarray, index_a: np.ndarray, index_b: np.ndarray) -> np.ndarray:
     """
-    Build a visibility matrix from a visibility array with zeros for autocorrelation.
+    Build a visibility matrix from a visibility array with zeros for auto-correlation.
     :param index_b:
     :param index_a:
     :param array: (numpy.ndarray) visibility array
@@ -131,28 +160,29 @@ def build_visibility_matrix(array: np.ndarray, index_a: np.ndarray, index_b: np.
     n_antennas = np.union1d(index_a, index_b).shape[0]
 
     # Dimensions are (n_baselines, n_channel, n_polarization) but we are replacing the first index with n_antenna
-    #_, n_channel, n_polarization = array.shape
-    n_channel = n_polarization = 1
+    n_times, _, n_channel, n_polarization = array.shape
+    n_polarization = int(np.sqrt(n_polarization))
 
     # Build matrix
     # -- Building a matrix that works better with the regression algorithm. I would really prefer not to
     # -- completely flip the axes but at the C-level, using jit(), it should fine fine for the time being.
     # -- This also allows for effective vectorization in the solver.
-    matrix_ = np.zeros((n_channel, n_polarization, n_antennas, n_antennas), dtype=np.complex64)
+    matrix_ = np.zeros((n_times, n_channel, n_polarization, n_antennas, n_antennas), dtype=np.complex64)
 
     # This only works with n_channel = 0, n_polarization=0 at the moment.
     for baseline in range(size):
-        for channel in range(n_channel):
-            for polarization in range(n_polarization):
+        for time in range(n_times):
+            for channel in range(n_channel):
+                for polarization in range(n_polarization):
 
-                i = index_a[baseline]
-                j = index_b[baseline]
+                    i = index_a[baseline]
+                    j = index_b[baseline]
 
-                if i == j:
-                    continue
-                                                        # no chan and pol dim for now?
-                matrix_[channel, polarization, i, j] = array[baseline, channel, polarization]
-                matrix_[channel, polarization, j, i] = np.conj(array[baseline, channel, polarization])
+                    if i == j:
+                        continue
+
+                    matrix_[time, channel, polarization, i, j] = array[time, baseline, channel, polarization]
+                    matrix_[time, channel, polarization, j, i] = np.conj(array[time, baseline, channel, polarization])
 
     return matrix_
 

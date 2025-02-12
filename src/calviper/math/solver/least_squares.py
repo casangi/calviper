@@ -72,18 +72,19 @@ class LeastSquaresSolver:
     @staticmethod
     @numba.njit()
     def predict(model_, parameter)->np.ndarray:
-        n_channel, n_polarizations, n_antennas = parameter.shape
+        n_time, n_channel, n_polarizations, n_antennas = parameter.shape
         prediction = np.zeros_like(model_)
 
         # This can definitely be optimized, but I just want to test for now.
-        for channel in range(n_channel):
-            for polarization in range(n_polarizations):
-                for i in range(n_antennas):
-                    for j in range(n_antennas):
-                        if i == j:
-                            continue
+        for time in range(n_time):
+            for channel in range(n_channel):
+                for polarization in range(n_polarizations):
+                    for i in range(n_antennas):
+                        for j in range(n_antennas):
+                            if i == j:
+                                continue
 
-                        prediction[channel, polarization, i, j] = parameter[channel, polarization, i] * model_[channel, polarization, i, j] * np.conj(parameter[channel, polarization, j])
+                            prediction[time, channel, polarization, i, j] = parameter[time, channel, polarization, i] * model_[time, channel, polarization, i, j] * np.conj(parameter[time, channel, polarization, j])
 
         return prediction
 
@@ -91,11 +92,11 @@ class LeastSquaresSolver:
         # This is an attempt to do the solving in a vectorized way
 
         # Unpack the shape
-        n_channel, n_polarization, n_antenna1, n_antenna2 = vis.shape
+        n_times, n_channel, n_polarization, n_antenna1, n_antenna2 = vis.shape
 
         assert n_antenna1 == n_antenna2, logger.error("Antenna indices don't match")
 
-        self.parameter = np.tile(0.1 * np.ones(n_antenna1, dtype=np.complex64), reps=[n_channel, n_polarization, 1])
+        self.parameter = np.tile(0.1 * np.ones(n_antenna1, dtype=np.complex64), reps=[n_times, n_channel, n_polarization, 1])
 
         # Generate point source model
         if self.model_ is None:
