@@ -70,7 +70,7 @@ class LeastSquaresSolver:
         return np.dot(parameter_matrix_.conj(), cache_)
 
     @staticmethod
-    @numba.njit()
+    #@numba.njit()
     def predict(model_, parameter)->np.ndarray:
         n_time, n_channel, n_polarizations, n_antennas = parameter.shape
         prediction = np.zeros_like(model_)
@@ -85,6 +85,8 @@ class LeastSquaresSolver:
                                 continue
 
                             prediction[time, channel, polarization, i, j] = parameter[time, channel, polarization, i] * model_[time, channel, polarization, i, j] * np.conj(parameter[time, channel, polarization, j])
+                            #print(f"({time}, {channel}, {polarization}): prediction: [{i}, {j}] {parameter[time, channel, polarization, i]}")
+
 
         return prediction
 
@@ -97,7 +99,7 @@ class LeastSquaresSolver:
         assert n_antenna1 == n_antenna2, logger.error("Antenna indices don't match")
 
         self.parameter = np.tile(0.1 * np.ones(n_antenna1, dtype=np.complex64), reps=[n_times, n_channel, n_polarization, 1])
-
+        print(f"\n@Creation(param): pol(X): {self.parameter[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 1]}\n")
         # Generate point source model
         if self.model_ is None:
             self.model_ = (1.0 + 1j * 0.0) * np.ones_like(vis, dtype=np.complex64)
@@ -122,6 +124,11 @@ class LeastSquaresSolver:
                 model=self.model_,
                 parameter=self.parameter
             )
+            print(f"\n@Post gradient(param): pol(X): {self.parameter[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 1]}\n")
+            print(f"@Gradient: {gradient_[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 0]}")
+            print(f"@Gradient: {gradient_[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 1]}")
+            print(f"@Gradient: {gradient_[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 2]}")
+            print(f"@Gradient: {gradient_[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 3]}")
 
             self.parameter = optimizer.step(
                 parameter=self.parameter,
@@ -132,8 +139,8 @@ class LeastSquaresSolver:
 
             self.losses.append(optimizer.loss(y_pred, vis))
 
-            if n % (iterations // 10) == 0:
-                logger.info(f"iteration: {n}\tloss: {np.abs(self.losses[-1])}")
+            #if n % (iterations // 10) == 0:
+            #    logger.info(f"iteration: {n}\tloss: {np.abs(self.losses[-1])}")
 
             if self.losses[-1] < stopping:
                 logger.info(f"Iteration: ({n})\tStopping criterion reached: {self.losses[-1]}")

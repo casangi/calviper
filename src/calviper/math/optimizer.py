@@ -17,6 +17,10 @@ class MeanSquaredError:
         denominator_ = np.einsum('tcpj,tcpj,tcpij,tcpij->tcpi', parameter, parameter.conj(), model, model.conj())
         gradient_ = (numerator_ / denominator_) - parameter
 
+        print(f"@-Gradient(Numerator): {numerator_[0, 0, 0, 1]} {numerator_[0, 0, 1, 1]}")
+        print(f"@-Gradient(Denominator): {denominator_[0, 0, 0, 1]} {denominator_[0, 0, 1, 1]}")
+        print(f"@-Gradient(Inner): {gradient_[0, 0, 0, 1]} {gradient_[0, 0, 1, 1]}")
+
         return gradient_
 
     @staticmethod
@@ -27,6 +31,13 @@ class MeanSquaredError:
         :param y_pred: Predicted values.
         :return: Mean squared error.
         """
+        #square_difference = np.power(np.abs(y_pred) - np.abs(y), 2)
+        #for p in range(square_difference.shape[2]):
+        #    for ant1 in range(square_difference.shape[3]):
+        #        for ant2 in range(square_difference.shape[4]):
+        #            print(f"polarization: {p}, ant1: {ant1}, ant2: {ant2}: value: {square_difference[0, 0, p, ant1, ant2]}")
+        #print(y_pred[0, 0, 1, :])
+
         return np.mean(np.power(np.abs(y_pred.flatten()) - np.abs(y.flatten()), 2))
 
     def step(self, parameter: np.ndarray, gradient: np.ndarray) -> np.ndarray:
