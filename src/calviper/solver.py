@@ -11,10 +11,11 @@ class ScipySolverLeastSquares:
     Probably a matrix of calibrated values?
     '''
 
-    def __init__(self, obs, model=[1+0j,1+0j,1+0j,1+0j], start_guess=[(1+0j), (1+0j)]):
+    def __init__(self, obs, model=[1+0j,0+0j,0+0j,1+0j], start_guess=[(1+0j), (1+0j)]):
         self.obs = obs
         self.model = model
         self.start_guess = start_guess
+        self.pols = [(0,0), (0,1), (1,0), (1,1)]
 
         # tracking solns
         self.tracked_vals = {}
@@ -34,63 +35,67 @@ class ScipySolverLeastSquares:
     def chi_square(self, ant_set, vis_dict, vis_model, stepsize=0.1):
         """
         This is the derivative of chi squared to minimize
-        currently just do XX solutions?
         This is more of a temp solver TODO: see Josh's verison for more effective solution
         """
-        # do one pol for now
-        tmp = self.solved_vals.copy()
+        tmp = self.solved_vals
         diff = 100
+        # ignoring weights for the moment
         weight = 1 #/ (0.5 * 0.5)
 
-        # do this for each pol pair XX XY
-        #                           YX YY
-        # solve for Gx and Gy
-        # Vtrue = Gxi Vij Gxj
-        # solved_vals should have just Gx Gy
-        # Pols [GxGx, GxGy, GyGx, GyGy]
-        #      [(0,0), (0,1), (1,0), (1,1)]
-        pols = [(0,0), (0,1), (1,0), (1,1)]
-        # should be 4
-        for p in [0,3]:
-            for i in ant_set:
-                num_sum = (0 + 0j)#np.zeros(4, dtype=complex)
-                denom_sum = (0 + 0j)#np.zeros(4, dtype=complex)
+        for i in ant_set:
+            # init sum for numerator and denominator
+            # This is 2d since we calculate a sum for the X and Y polarizations
+            num_sum = np.asarray([0+0j, 0+0j])
+            denom_sum = np.asarray([0+0j, 0+0j])
 
-                for j in ant_set:
-                    # ignore current ant
-                    if i == j: continue;
-                    
-                    # index 0 is XX pol
-                    # for now we solve for the ant_x polarization solution using just the XX
-                    if (i,j) in vis_dict:
-                        #print("NON CONJ")
-                        cur_obs = vis_dict[(i, j)][p]
-                        num_sum += cur_obs * self.solved_vals[j][pols[p][1]] * (1 + 0j) * weight
-                    elif (j,i) in vis_dict:
-                        #print("CONJ VER")
-                        cur_obs = np.conj(vis_dict[(j,i)][p])
-                        num_sum += cur_obs * self.solved_vals[j][pols[p][1]] * (np.conj(1 + 0j)) * weight
-                        
-                    denom_sum += self.solved_vals[j][pols[p][1]] * np.conj(self.solved_vals[j][pols[p][1]]) * (1+0j) * np.conj(1 + 0j) * weight
+            # sum over all j where i != j
+            for j in ant_set:
+                if i == j: continue;
+                # iterate over each polarization for estimated Gx and Gy values
+                num_sum, denom_sum = self.calc_grad_components(vis_dict, i, j, num_sum, denom_sum)
 
-                gain = num_sum / denom_sum
-                #print(i, gain)
-                # again make sure we use the right pol
-                diff = gain - self.solved_vals[i][pols[p][0]]
-                #print(diff)
-                #print(self.solved_vals[i][0])
-                #print(tmp[i][0])
-                tmp[i][pols[p][0]] = self.solved_vals[i][pols[p][0]] + (stepsize * diff)
-                #print(i, tmp[i])
-                # if tracking
-                self.tracked_vals[i].append(tmp[i].copy())
+            gain = num_sum / denom_sum
 
-            #print(grad)
-            # need sln for Gx and Gy for each ant
+            # again make sure we use the right pol
+            diff = gain - self.solved_vals[i]#[pols[p][0]]
+            tmp[i] = self.solved_vals[i] + (stepsize * diff)
+
+            # if tracking for plots
+            self.tracked_vals[i].append(tmp[i].copy())
+
             self.solved_vals = tmp
+
         return diff
 
 
+    def calc_grad_components(self, vis: dict, ant1: int, ant2: int,
+                            num_sum, denom_sum):
+        '''
+        Use all correlated baseline polarizations to enumerate on the numerator and denominator
+        for the gradient calculation
+        '''
+
+        # Find a solution for Gx Gy using each of the baseline polarizations
+        for baseline_pol in range(4):
+
+            # see self.pols for more info but this is the polarization of each ant in the baseline
+            ant1_pol = self.pols[baseline_pol][0]
+            ant2_pol = self.pols[baseline_pol][1]
+
+            # update the numerator
+            if (ant1, ant2) in vis:
+                cur_obs = vis[(ant1, ant2)][baseline_pol]
+                num_sum[ant1_pol] += cur_obs * self.solved_vals[ant2][ant2_pol] * self.model[baseline_pol]
+            # for the case where antenna1 is on the other side
+            elif (ant2, ant1) in vis:
+                cur_obs = np.conj(vis[(ant2, ant1)][baseline_pol])
+                num_sum[ant1_pol] += cur_obs * self.solved_vals[ant2][ant2_pol] * (np.conj(self.model[baseline_pol]))
+            
+            # update the denominator
+            denom_sum[ant1_pol] += (self.solved_vals[ant2][ant2_pol] * np.conj(self.solved_vals[ant2][ant2_pol]) *
+                                    self.model[baseline_pol] * np.conj(self.model[baseline_pol]))
+        
+        return num_sum, denom_sum
 
 
     def build_vis_dict(self):
@@ -108,13 +113,10 @@ class ScipySolverLeastSquares:
             _vis = item.values
             _ant1 = str(item.baseline_antenna1_name.values)
             _ant2 = str(item.baseline_antenna2_name.values)
-            #print(_ant1, _ant2, _vis)
             
+            # 
             if (_ant1, _ant2) not in vis_dict.keys():
                 vis_dict[(_ant1, _ant2)] = _vis
-
-            #if (_ant2, _ant1) not in vis_dict.keys():
-            #    vis_dict[(_ant2, _ant1)] = np.conj(_vis)
 
         return vis_dict
     
@@ -129,9 +131,6 @@ class ScipySolverLeastSquares:
         '''
         self.solved_vals = {}
         vis_dict = self.build_vis_dict()
-        #print("VIS DICT:")
-        #for k, v in vis_dict.items():
-        #    print(k,": ", v[0])
         diff = 1 + 0j
 
         ant_set = set(self.obs.matrix.baseline_antenna1_name.values)
@@ -181,7 +180,7 @@ class ScipySolverLeastSquares:
     def plot_solution(self, pol=0):
         for k, v in self.tracked_vals.items():
             #print(k, np.asarray(v)[:, pol])
-            p = [abs(i) for i in np.asarray(v)[:, pol]]
+            p = [abs(i) for i in np.asarray(v)[:, :]]
             plt.plot(p)
             break
         
