@@ -11,15 +11,19 @@ class MeanSquaredError:
         # cache_ = target, model.conj()
         # numerator_ = np.matmul(cache_, parameter)
         # denominator_ = np.matmul(model * model.conj(), parameter * parameter.conj())
+        n_time, n_channel, n_polarization, n_antennas, n_antennas = target.shape
+        target = target.reshape(n_time, n_channel, 2, 2, n_antennas, n_antennas)
+        model = model.reshape(n_time, n_channel, 2, 2, n_antennas, n_antennas)
 
         # einsum should work here *only* because we made the  diagonal of the model zeros
-        numerator_ = np.einsum('tcpij,tcpj,tcpij->tcpi', target, parameter, model.conj())
-        denominator_ = np.einsum('tcpj,tcpj,tcpij,tcpij->tcpi', parameter, parameter.conj(), model, model.conj())
+        numerator_ = np.einsum('tcpqij,tcqj,tcpqij->tcpi', target, parameter, model.conj())
+        denominator_ = np.einsum('tcqj,tcqj,tcpqij,tcpqij->tcpi', parameter, parameter.conj(), model, model.conj())
         gradient_ = (numerator_ / denominator_) - parameter
 
-        print(f"@-Gradient(Numerator): {numerator_[0, 0, 0, 1]} {numerator_[0, 0, 1, 1]}")
-        print(f"@-Gradient(Denominator): {denominator_[0, 0, 0, 1]} {denominator_[0, 0, 1, 1]}")
-        print(f"@-Gradient(Inner): {gradient_[0, 0, 0, 1]} {gradient_[0, 0, 1, 1]}")
+        #print(f"gradient is {gradient_.shape}")
+        #print(f"@-Gradient(Numerator): {numerator_[0, 0, 0, 1]} {numerator_[0, 0, 1, 1]}")
+        #print(f"@-Gradient(Denominator): {denominator_[0, 0, 0, 1]} {denominator_[0, 0, 1, 1]}")
+        #print(f"@-Gradient(Inner): {gradient_[0, 0, 0, 1]} {gradient_[0, 0, 1, 1]}")
 
         return gradient_
 

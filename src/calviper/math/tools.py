@@ -161,7 +161,7 @@ def build_visibility_matrix(array: np.ndarray, index_a: np.ndarray, index_b: np.
 
     # Dimensions are (n_baselines, n_channel, n_polarization) but we are replacing the first index with n_antenna
     n_times, _, n_channel, n_polarization = array.shape
-    n_polarization = int(np.sqrt(n_polarization))
+    #n_polarization = int(np.sqrt(n_polarization))
 
     # Build matrix
     # -- Building a matrix that works better with the regression algorithm. I would really prefer not to

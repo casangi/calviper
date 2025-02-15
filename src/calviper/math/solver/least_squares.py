@@ -4,6 +4,8 @@ import numpy as np
 import toolviper.utils.logger as logger
 
 from calviper.math.optimizer import MeanSquaredError
+
+
 # from calviper.math.loss import mean_squared_error as mse
 
 
@@ -98,8 +100,8 @@ class LeastSquaresSolver:
 
         assert n_antenna1 == n_antenna2, logger.error("Antenna indices don't match")
 
-        self.parameter = np.tile(0.1 * np.ones(n_antenna1, dtype=np.complex64), reps=[n_times, n_channel, n_polarization, 1])
-        print(f"\n@Creation(param): pol(X): {self.parameter[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 1]}\n")
+        self.parameter = np.tile(0.1 * np.ones(n_antenna1, dtype=np.complex64), reps=[n_times, n_channel, int(np.sqrt(n_polarization)), 1])
+        #print(f"\n@Creation(param): pol(X): {self.parameter[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 1]}\n")
         # Generate point source model
         if self.model_ is None:
             self.model_ = (1.0 + 1j * 0.0) * np.ones_like(vis, dtype=np.complex64)
@@ -107,10 +109,14 @@ class LeastSquaresSolver:
             # numpy.fill_diagonal doesn't fill tensors in the way I had hoped, ie. for shape = (m, n, i, j)
             # the fill is done for m == n == i == j, which is not what we want. Instead, we want
             # i == j for each (m. n). The following is my attempt to fix this.
-            anti_eye = np.ones((n_antenna1, n_antenna2), dtype=np.complex64)
+            anti_eye = np.zeros((n_antenna1, n_antenna2), dtype=np.complex64)
+
+            #eye = np.identity(n_antenna1, dtype=np.complex64)
             np.fill_diagonal(anti_eye, np.complex64(0., 0.))
 
-            self.model_ = self.model_ * anti_eye
+            #self.model_ = self.model_ * eye
+            #self.model_ = self.model_ * anti_eye
+            self.model_ = self.model_ * np.random.uniform(low=0.0, high=1.0, size=self.model_.shape)
 
         self.losses = []
 
@@ -124,11 +130,12 @@ class LeastSquaresSolver:
                 model=self.model_,
                 parameter=self.parameter
             )
-            print(f"\n@Post gradient(param): pol(X): {self.parameter[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 1]}\n")
-            print(f"@Gradient: {gradient_[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 0]}")
-            print(f"@Gradient: {gradient_[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 1]}")
-            print(f"@Gradient: {gradient_[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 2]}")
-            print(f"@Gradient: {gradient_[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 3]}")
+
+            #print(f"\n@Post gradient(param): pol(X): {self.parameter[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 1]}\n")
+            #print(f"@Gradient: {gradient_[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 0]}")
+            #print(f"@Gradient: {gradient_[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 1]}")
+            #print(f"@Gradient: {gradient_[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 2]}")
+            #print(f"@Gradient: {gradient_[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 3]}")
 
             self.parameter = optimizer.step(
                 parameter=self.parameter,
