@@ -116,7 +116,7 @@ class LeastSquaresSolver:
 
             #self.model_ = self.model_ * eye
             #self.model_ = self.model_ * anti_eye
-            self.model_ = self.model_ * np.random.uniform(low=0.0, high=1.0, size=self.model_.shape)
+            self.model_ = self.model_ * np.random.uniform(low=1e-6, high=1.0, size=self.model_.shape)
 
         self.losses = []
 

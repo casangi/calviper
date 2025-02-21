@@ -47,6 +47,8 @@ class MeanSquaredError:
         for p, q in itertools.product([0, 1], [0, 1]):
             for antenna_i in range(n_antennas):
                 for antenna_j in range(n_antennas):
+                    if antenna_j == antenna_i:
+                        continue
 
                     numerator_[0, 0, p, antenna_i] += target[0, 0, p, q, antenna_i, antenna_j] * parameter[0, 0, q, antenna_j] * model[0, 0, p, q, antenna_i, antenna_j].conj()
                     denominator_[0, 0, p, antenna_i] += parameter[0, 0, q, antenna_j] * parameter[0, 0, q, antenna_j].conj() * model[0, 0, p, q, antenna_i, antenna_j].conj() * model[0, 0, p, q, antenna_i, antenna_j]
