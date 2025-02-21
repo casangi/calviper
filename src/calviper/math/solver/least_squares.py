@@ -146,8 +146,8 @@ class LeastSquaresSolver:
 
             self.losses.append(optimizer.loss(y_pred, vis))
 
-            #if n % (iterations // 10) == 0:
-            #    logger.info(f"iteration: {n}\tloss: {np.abs(self.losses[-1])}")
+            if n % (iterations // 10) == 0:
+                logger.info(f"iteration: {n}\tloss: {np.abs(self.losses[-1])}")
 
             if self.losses[-1] < stopping:
                 logger.info(f"Iteration: ({n})\tStopping criterion reached: {self.losses[-1]}")

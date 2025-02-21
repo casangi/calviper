@@ -1,4 +1,5 @@
 import itertools
+import numba
 
 import numpy as np
 
@@ -30,6 +31,7 @@ class MeanSquaredError:
         return gradient_
 
     @staticmethod
+    #@numba.njit
     def gradient(target: np.ndarray, model: np.ndarray, parameter: np.ndarray) -> np.ndarray:
         # cache_ = target, model.conj()
         # numerator_ = np.matmul(cache_, parameter)
@@ -38,8 +40,8 @@ class MeanSquaredError:
         target = target.reshape(n_time, n_channel, 2, 2, n_antennas, n_antennas)
         model = model.reshape(n_time, n_channel, 2, 2, n_antennas, n_antennas)
 
-        numerator_ = np.zeros((n_time, n_channel, 2, n_antennas))
-        denominator_ = np.zeros((n_time, n_channel, 2, n_antennas))
+        numerator_ = np.zeros((n_time, n_channel, 2, n_antennas), dtype=np.complex64)
+        denominator_ = np.zeros((n_time, n_channel, 2, n_antennas), dtype=np.complex64)
 
         # polarizations per baseline are in the order [XX, XY, YX, YY] I think ... so
         for p, q in itertools.product([0, 1], [0, 1]):
