@@ -1,3 +1,5 @@
+import itertools
+
 import numpy as np
 
 
@@ -7,7 +9,7 @@ class MeanSquaredError:
         self.alpha = alpha
 
     @staticmethod
-    def gradient(target: np.ndarray, model: np.ndarray, parameter: np.ndarray) -> np.ndarray:
+    def gradient_(target: np.ndarray, model: np.ndarray, parameter: np.ndarray) -> np.ndarray:
         # cache_ = target, model.conj()
         # numerator_ = np.matmul(cache_, parameter)
         # denominator_ = np.matmul(model * model.conj(), parameter * parameter.conj())
@@ -24,6 +26,34 @@ class MeanSquaredError:
         #print(f"@-Gradient(Numerator): {numerator_[0, 0, 0, 1]} {numerator_[0, 0, 1, 1]}")
         #print(f"@-Gradient(Denominator): {denominator_[0, 0, 0, 1]} {denominator_[0, 0, 1, 1]}")
         #print(f"@-Gradient(Inner): {gradient_[0, 0, 0, 1]} {gradient_[0, 0, 1, 1]}")
+
+        return gradient_
+
+    @staticmethod
+    def gradient(target: np.ndarray, model: np.ndarray, parameter: np.ndarray) -> np.ndarray:
+        # cache_ = target, model.conj()
+        # numerator_ = np.matmul(cache_, parameter)
+        # denominator_ = np.matmul(model * model.conj(), parameter * parameter.conj())
+        n_time, n_channel, n_polarization, n_antennas, n_antennas = target.shape
+        target = target.reshape(n_time, n_channel, 2, 2, n_antennas, n_antennas)
+        model = model.reshape(n_time, n_channel, 2, 2, n_antennas, n_antennas)
+
+        numerator_ = np.zeros((n_time, n_channel, 2, n_antennas))
+        denominator_ = np.zeros((n_time, n_channel, 2, n_antennas))
+
+        # polarizations per baseline are in the order [XX, XY, YX, YY] I think ... so
+        for p, q in itertools.product([0, 1], [0, 1]):
+            for antenna_i in range(n_antennas):
+                for antenna_j in range(n_antennas):
+
+                    numerator_[0, 0, p, antenna_i] += target[0, 0, p, q, antenna_i, antenna_j] * parameter[0, 0, q, antenna_j] * model[0, 0, p, q, antenna_i, antenna_j].conj()
+                    denominator_[0, 0, p, antenna_i] += parameter[0, 0, q, antenna_j] * parameter[0, 0, q, antenna_j].conj() * model[0, 0, p, q, antenna_i, antenna_j].conj() * model[0, 0, p, q, antenna_i, antenna_j]
+
+        #numerator_ = np.einsum('tcpqij,tcqj,tcpqij->tcpi', target, parameter, model.conj())
+        #denominator_ = np.einsum('tcqj,tcqj,tcpqij,tcpqij->tcpi', parameter, parameter.conj(), model, model.conj())
+        #gradient_ = (numerator_ / denominator_) - parameter
+
+        gradient_ = (numerator_ / denominator_) - parameter
 
         return gradient_
 
