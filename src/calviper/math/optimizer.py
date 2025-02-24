@@ -33,9 +33,7 @@ class MeanSquaredError:
     @staticmethod
     #@numba.njit
     def gradient(target: np.ndarray, model: np.ndarray, parameter: np.ndarray) -> np.ndarray:
-        # cache_ = target, model.conj()
-        # numerator_ = np.matmul(cache_, parameter)
-        # denominator_ = np.matmul(model * model.conj(), parameter * parameter.conj())
+
         n_time, n_channel, n_polarization, n_antennas, n_antennas = target.shape
         target = target.reshape(n_time, n_channel, 2, 2, n_antennas, n_antennas)
         model = model.reshape(n_time, n_channel, 2, 2, n_antennas, n_antennas)
@@ -44,18 +42,19 @@ class MeanSquaredError:
         denominator_ = np.zeros((n_time, n_channel, 2, n_antennas), dtype=np.complex64)
 
         # polarizations per baseline are in the order [XX, XY, YX, YY] I think ... so
-        for p, q in itertools.product([0, 1], [0, 1]):
-            for antenna_i in range(n_antennas):
-                for antenna_j in range(n_antennas):
-                    if antenna_j == antenna_i:
-                        continue
+        # for p, q in itertools.product([0, 1], [0, 1]):
+        for antenna_i in range(n_antennas):
+            for antenna_j in range(n_antennas):
+                for p in [0, 1]:
+                    for q in [0, 1]:
+                        #if antenna_i == antenna_j:
+                        #    continue
 
-                    numerator_[0, 0, p, antenna_i] += target[0, 0, p, q, antenna_i, antenna_j] * parameter[0, 0, q, antenna_j] * model[0, 0, p, q, antenna_i, antenna_j].conj()
-                    denominator_[0, 0, p, antenna_i] += parameter[0, 0, q, antenna_j] * parameter[0, 0, q, antenna_j].conj() * model[0, 0, p, q, antenna_i, antenna_j].conj() * model[0, 0, p, q, antenna_i, antenna_j]
+                        numerator_[0, 0, p, antenna_i] += target[0, 0, p, q, antenna_i, antenna_j] * parameter[0, 0, q, antenna_j] * model[0, 0, p, q, antenna_i, antenna_j].conj()
+                        denominator_[0, 0, p, antenna_i] += parameter[0, 0, q, antenna_j] * parameter[0, 0, q, antenna_j].conj() * model[0, 0, p, q, antenna_i, antenna_j].conj() * model[0, 0, p, q, antenna_i, antenna_j]
+                        #print(f"parameter[p={p}, j={antenna_j}]: {parameter[0, 0, q, antenna_j]}\tmodel_[p={p}, i={antenna_i}, j={antenna_j}]:{model[0, 0, p, q, antenna_i, antenna_j]}")
 
-        #numerator_ = np.einsum('tcpqij,tcqj,tcpqij->tcpi', target, parameter, model.conj())
-        #denominator_ = np.einsum('tcqj,tcqj,tcpqij,tcpqij->tcpi', parameter, parameter.conj(), model, model.conj())
-        #gradient_ = (numerator_ / denominator_) - parameter
+        #print(f"\t --- denominator: {denominator_}")
 
         gradient_ = (numerator_ / denominator_) - parameter
 
@@ -69,16 +68,10 @@ class MeanSquaredError:
         :param y_pred: Predicted values.
         :return: Mean squared error.
         """
-        #square_difference = np.power(np.abs(y_pred) - np.abs(y), 2)
-        #for p in range(square_difference.shape[2]):
-        #    for ant1 in range(square_difference.shape[3]):
-        #        for ant2 in range(square_difference.shape[4]):
-        #            print(f"polarization: {p}, ant1: {ant1}, ant2: {ant2}: value: {square_difference[0, 0, p, ant1, ant2]}")
-        #print(y_pred[0, 0, 1, :])
 
         return np.mean(np.power(np.abs(y_pred.flatten()) - np.abs(y.flatten()), 2))
 
     def step(self, parameter: np.ndarray, gradient: np.ndarray) -> np.ndarray:
-        parameter = parameter + self.alpha * gradient
+        parameter += self.alpha * gradient
 
         return parameter

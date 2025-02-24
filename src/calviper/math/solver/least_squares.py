@@ -109,14 +109,14 @@ class LeastSquaresSolver:
             # numpy.fill_diagonal doesn't fill tensors in the way I had hoped, ie. for shape = (m, n, i, j)
             # the fill is done for m == n == i == j, which is not what we want. Instead, we want
             # i == j for each (m. n). The following is my attempt to fix this.
-            anti_eye = np.zeros((n_antenna1, n_antenna2), dtype=np.complex64)
+            anti_eye = np.ones((n_antenna1, n_antenna2), dtype=np.complex64)
 
-            #eye = np.identity(n_antenna1, dtype=np.complex64)
-            np.fill_diagonal(anti_eye, np.complex64(0., 0.))
+            eye = np.identity(n_antenna1, dtype=np.complex64)
+            np.fill_diagonal(anti_eye, np.complex64(1., 0.))
 
-            #self.model_ = self.model_ * eye
-            #self.model_ = self.model_ * anti_eye
-            self.model_ = self.model_ * np.random.uniform(low=1e-6, high=1.0, size=self.model_.shape)
+            #self.model_ = self.model_ #* eye
+            self.model_ = self.model_ * anti_eye
+            #self.model_ = self.model_ * np.random.uniform(low=0.0, high=1.0, size=self.model_.shape) * anti_eye
 
         self.losses = []
 
@@ -131,11 +131,7 @@ class LeastSquaresSolver:
                 parameter=self.parameter
             )
 
-            #print(f"\n@Post gradient(param): pol(X): {self.parameter[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 1]}\n")
-            #print(f"@Gradient: {gradient_[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 0]}")
-            #print(f"@Gradient: {gradient_[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 1]}")
-            #print(f"@Gradient: {gradient_[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 2]}")
-            #print(f"@Gradient: {gradient_[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 3]}")
+            #print(f"gradient: {gradient_.mean()}")
 
             self.parameter = optimizer.step(
                 parameter=self.parameter,
@@ -146,8 +142,8 @@ class LeastSquaresSolver:
 
             self.losses.append(optimizer.loss(y_pred, vis))
 
-            if n % (iterations // 10) == 0:
-                logger.info(f"iteration: {n}\tloss: {np.abs(self.losses[-1])}")
+            #if n % (iterations // 10) == 0:
+            #    logger.info(f"iteration: {n}\tloss: {np.abs(self.losses[-1])}")
 
             if self.losses[-1] < stopping:
                 logger.info(f"Iteration: ({n})\tStopping criterion reached: {self.losses[-1]}")
