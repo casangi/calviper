@@ -47,16 +47,13 @@ class MeanSquaredError:
             for antenna_j in range(n_antennas):
                 for p in [0, 1]:
                     for q in [0, 1]:
-                        #if antenna_i == antenna_j:
-                        #    continue
+                        if antenna_i == antenna_j:
+                            continue
 
                         numerator_[0, 0, p, antenna_i] += target[0, 0, p, q, antenna_i, antenna_j] * parameter[0, 0, q, antenna_j] * model[0, 0, p, q, antenna_i, antenna_j].conj()
                         denominator_[0, 0, p, antenna_i] += parameter[0, 0, q, antenna_j] * parameter[0, 0, q, antenna_j].conj() * model[0, 0, p, q, antenna_i, antenna_j].conj() * model[0, 0, p, q, antenna_i, antenna_j]
-                        #print(f"parameter[p={p}, j={antenna_j}]: {parameter[0, 0, q, antenna_j]}\tmodel_[p={p}, i={antenna_i}, j={antenna_j}]:{model[0, 0, p, q, antenna_i, antenna_j]}")
 
-        #print(f"\t --- denominator: {denominator_}")
-
-        gradient_ = (numerator_ / denominator_) - parameter
+        gradient_ = (numerator_ / denominator_).conj() - parameter
 
         return gradient_
 

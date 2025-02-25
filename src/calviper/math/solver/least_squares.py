@@ -114,9 +114,7 @@ class LeastSquaresSolver:
             eye = np.identity(n_antenna1, dtype=np.complex64)
             np.fill_diagonal(anti_eye, np.complex64(1., 0.))
 
-            #self.model_ = self.model_ #* eye
-            self.model_ = self.model_ * anti_eye
-            #self.model_ = self.model_ * np.random.uniform(low=0.0, high=1.0, size=self.model_.shape) * anti_eye
+            self.model_ = self.model_
 
         self.losses = []
 
@@ -142,8 +140,8 @@ class LeastSquaresSolver:
 
             self.losses.append(optimizer.loss(y_pred, vis))
 
-            #if n % (iterations // 10) == 0:
-            #    logger.info(f"iteration: {n}\tloss: {np.abs(self.losses[-1])}")
+            if n % (iterations // 10) == 0:
+                logger.info(f"iteration: {n}\tloss: {np.abs(self.losses[-1])}")
 
             if self.losses[-1] < stopping:
                 logger.info(f"Iteration: ({n})\tStopping criterion reached: {self.losses[-1]}")
