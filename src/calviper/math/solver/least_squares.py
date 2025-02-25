@@ -87,8 +87,6 @@ class LeastSquaresSolver:
                                 continue
 
                             prediction[time, channel, polarization, i, j] = parameter[time, channel, polarization, i] * model_[time, channel, polarization, i, j] * np.conj(parameter[time, channel, polarization, j])
-                            #print(f"({time}, {channel}, {polarization}): prediction: [{i}, {j}] {parameter[time, channel, polarization, i]}")
-
 
         return prediction
 
@@ -100,8 +98,8 @@ class LeastSquaresSolver:
 
         assert n_antenna1 == n_antenna2, logger.error("Antenna indices don't match")
 
-        self.parameter = np.tile(0.1 * np.ones(n_antenna1, dtype=np.complex64), reps=[n_times, n_channel, int(np.sqrt(n_polarization)), 1])
-        #print(f"\n@Creation(param): pol(X): {self.parameter[0, 0, 0, 1]}\tpol(Y): {self.parameter[0, 0, 1, 1]}\n")
+        self.parameter = np.tile(np.random.uniform(0.0, 1.0) * np.ones(n_antenna1, dtype=np.complex64), reps=[n_times, n_channel, int(np.sqrt(n_polarization)), 1])
+
         # Generate point source model
         if self.model_ is None:
             self.model_ = (1.0 + 1j * 0.0) * np.ones_like(vis, dtype=np.complex64)
@@ -109,12 +107,12 @@ class LeastSquaresSolver:
             # numpy.fill_diagonal doesn't fill tensors in the way I had hoped, ie. for shape = (m, n, i, j)
             # the fill is done for m == n == i == j, which is not what we want. Instead, we want
             # i == j for each (m. n). The following is my attempt to fix this.
-            #anti_eye = np.ones((n_antenna1, n_antenna2), dtype=np.complex64)
+            # anti_eye = np.ones((n_antenna1, n_antenna2), dtype=np.complex64)
 
-            #eye = np.identity(n_antenna1, dtype=np.complex64)
-            #np.fill_diagonal(anti_eye, np.complex64(1., 0.))
+            # eye = np.identity(n_antenna1, dtype=np.complex64)
+            # np.fill_diagonal(anti_eye, np.complex64(1., 0.))
 
-            #self.model_ = self.model_
+            # self.model_ = self.model_
 
         self.losses = []
 

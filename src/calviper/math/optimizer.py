@@ -54,6 +54,8 @@ class MeanSquaredError:
                         denominator_[0, 0, p, antenna_i] += parameter[0, 0, q, antenna_j] * parameter[0, 0, q, antenna_j].conj() * model[0, 0, p, q, antenna_i, antenna_j].conj() * model[0, 0, p, q, antenna_i, antenna_j]
 
         gradient_ = (numerator_ / denominator_).conj() - parameter
+        #print(f"gradient(X): {gradient_[0, 0, 0, 0]}\tparameter: {parameter[0, 0, 0, 0]}")
+        #print(f"gradient(Y): {gradient_[0, 0, 1, 0]}\tparameter: {parameter[0, 0, 1, 0]}")
 
         return gradient_
 
