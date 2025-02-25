@@ -109,12 +109,12 @@ class LeastSquaresSolver:
             # numpy.fill_diagonal doesn't fill tensors in the way I had hoped, ie. for shape = (m, n, i, j)
             # the fill is done for m == n == i == j, which is not what we want. Instead, we want
             # i == j for each (m. n). The following is my attempt to fix this.
-            anti_eye = np.ones((n_antenna1, n_antenna2), dtype=np.complex64)
+            #anti_eye = np.ones((n_antenna1, n_antenna2), dtype=np.complex64)
 
-            eye = np.identity(n_antenna1, dtype=np.complex64)
-            np.fill_diagonal(anti_eye, np.complex64(1., 0.))
+            #eye = np.identity(n_antenna1, dtype=np.complex64)
+            #np.fill_diagonal(anti_eye, np.complex64(1., 0.))
 
-            self.model_ = self.model_
+            #self.model_ = self.model_
 
         self.losses = []
 
